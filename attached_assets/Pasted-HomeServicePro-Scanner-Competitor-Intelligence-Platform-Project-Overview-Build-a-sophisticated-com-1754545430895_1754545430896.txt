@@ -1,0 +1,498 @@
+HomeServicePro Scanner - Competitor Intelligence Platform
+Project Overview
+Build a sophisticated competitor intelligence and marketing analysis platform specifically designed for home service businesses (HVAC, plumbing, roofing, pest control, electrical, landscaping, etc.). The platform provides real-time competitive analysis, local SEO insights, and actionable marketing recommendations to help home service companies dominate their local markets.
+Core Concept Transformation
+Transform the existing restaurant scanner architecture into a home services-focused platform that analyzes:
+
+Service-Specific Keywords: "emergency plumber near me", "24/7 HVAC repair", "roof inspection [city]"
+Urgency Indicators: Emergency services, same-day service, 24/7 availability
+Trust Signals: Licensing, insurance, certifications, warranties
+Service Area Coverage: Multiple cities/zip codes instead of single locations
+Seasonal Patterns: HVAC (summer/winter peaks), roofing (storm season), pest control (seasonal infestations)
+
+Design System Specifications
+Color Palette
+css:root {
+  /* Primary Colors - Black & White Base */
+  --color-black: #000000;
+  --color-off-black: #0A0A0A;
+  --color-dark-gray: #1A1A1A;
+  --color-medium-gray: #2D2D2D;
+  --color-light-gray: #E5E5E5;
+  --color-off-white: #F5F5F5;
+  --color-white: #FFFFFF;
+  
+  /* Accent Color - Dark Orange for ALL data/visualizations */
+  --color-data-orange: #FF6B35;
+  --color-data-orange-dark: #E55A2B;
+  --color-data-orange-light: #FF8A5B;
+  --color-data-orange-fade: rgba(255, 107, 53, 0.1);
+  
+  /* Functional Colors */
+  --color-success: #FF6B35; /* Use orange for positive metrics */
+  --color-warning: #FF6B35; /* Maintain consistency */
+  --color-error: #FF6B35; /* All data in orange */
+  --color-info: #FF6B35;
+  
+  /* Gradients */
+  --gradient-data: linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%);
+  --gradient-fade: linear-gradient(180deg, rgba(255, 107, 53, 0.1) 0%, transparent 100%);
+}
+Typography
+css/* Use Inter for clean, professional look */
+--font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+--font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+/* Font Weights */
+--font-light: 300;
+--font-regular: 400;
+--font-medium: 500;
+--font-semibold: 600;
+--font-bold: 700;
+--font-black: 900;
+Component Styling
+All UI components should follow a stark black and white theme with dark orange (#FF6B35) used EXCLUSIVELY for:
+
+Data points and metrics
+Charts and graphs
+Progress indicators
+Performance scores
+Ranking positions
+Keyword volumes
+All numerical values
+
+Technical Architecture Updates
+1. Service Detection System (/server/services/homeServiceDetector.ts)
+typescriptexport class HomeServiceDetector {
+  private servicePatterns = {
+    hvac: {
+      keywords: ['heating', 'cooling', 'air conditioning', 'furnace', 'ac repair', 'hvac'],
+      urgencyTerms: ['emergency', '24/7', 'same day', 'urgent'],
+      certifications: ['NATE', 'EPA', 'HVAC Excellence'],
+      seasonalPeaks: { summer: [6,7,8], winter: [12,1,2] }
+    },
+    plumbing: {
+      keywords: ['plumber', 'plumbing', 'pipe', 'drain', 'water heater', 'leak'],
+      urgencyTerms: ['emergency', 'burst pipe', 'flooding', '24 hour'],
+      certifications: ['Master Plumber', 'Licensed', 'Bonded'],
+      seasonalPeaks: { winter: [12,1,2] } // Frozen pipes
+    },
+    roofing: {
+      keywords: ['roof', 'roofing', 'shingle', 'gutter', 'roof repair', 'roof replacement'],
+      urgencyTerms: ['storm damage', 'leak', 'emergency'],
+      certifications: ['GAF Certified', 'CertainTeed', 'Owens Corning Preferred'],
+      seasonalPeaks: { spring: [3,4,5], fall: [9,10,11] }
+    },
+    pest_control: {
+      keywords: ['pest control', 'exterminator', 'termite', 'bed bugs', 'rodent', 'ant'],
+      urgencyTerms: ['infestation', 'emergency', 'same day'],
+      certifications: ['QualityPro', 'GreenPro', 'Licensed Applicator'],
+      seasonalPeaks: { summer: [6,7,8], spring: [3,4,5] }
+    },
+    electrical: {
+      keywords: ['electrician', 'electrical', 'wiring', 'circuit', 'outlet', 'panel'],
+      urgencyTerms: ['emergency', 'power outage', 'sparking', 'no power'],
+      certifications: ['Master Electrician', 'Licensed', 'NECA Member'],
+      seasonalPeaks: { summer: [6,7,8] } // AC season
+    },
+    landscaping: {
+      keywords: ['landscaping', 'lawn care', 'tree service', 'lawn mowing', 'yard'],
+      urgencyTerms: ['tree removal', 'storm cleanup'],
+      certifications: ['ISA Certified', 'PLANET Certified'],
+      seasonalPeaks: { spring: [3,4,5], summer: [6,7,8] }
+    }
+  };
+
+  detectServiceType(businessName: string, businessProfile: any): ServiceType {
+    // Intelligent service type detection logic
+  }
+
+  generateServiceKeywords(serviceType: string, city: string, state: string): string[] {
+    // Generate highly targeted local service keywords
+  }
+}
+2. Competitor Analysis Service (/server/services/homeServiceCompetitorAnalysis.ts)
+typescriptexport class HomeServiceCompetitorAnalysis {
+  async analyzeLocalCompetitors(
+    serviceType: string,
+    serviceArea: ServiceArea,
+    businessProfile: any
+  ): Promise<CompetitorInsights> {
+    // Analyze:
+    // - Service area overlap
+    // - Pricing strategies (if available)
+    // - Review response times
+    // - Emergency service availability
+    // - Certification advantages
+    // - Fleet size indicators
+    // - Years in business
+    return {
+      directCompetitors: [], // Same service, same area
+      indirectCompetitors: [], // Related services
+      marketLeader: null,
+      competitiveAdvantages: [],
+      marketGaps: [],
+      pricingIntelligence: null
+    };
+  }
+}
+3. Local SEO Analyzer (/server/services/homeServiceLocalSEO.ts)
+typescriptexport class HomeServiceLocalSEO {
+  private criticalKeywords = {
+    emergency: ['emergency', '24/7', 'same day', 'urgent', 'immediate'],
+    trust: ['licensed', 'insured', 'certified', 'bonded', 'warranty'],
+    local: ['near me', 'in [city]', '[city] [service]', '[zip code]'],
+    commercial: ['commercial', 'residential', 'industrial'],
+    specific: ['repair', 'installation', 'maintenance', 'replacement', 'inspection']
+  };
+
+  async analyzeLocalRankings(
+    businessName: string,
+    serviceType: string,
+    serviceAreas: string[]
+  ): Promise<LocalSEORankings> {
+    // Check rankings for:
+    // - Emergency service keywords
+    // - Service + city combinations
+    // - "Near me" searches
+    // - Competitor comparison keywords
+  }
+}
+4. Review Intelligence Service (/server/services/homeServiceReviewIntelligence.ts)
+typescriptexport class HomeServiceReviewIntelligence {
+  async analyzeReviews(reviews: any[], serviceType: string): Promise<ReviewInsights> {
+    // Analyze home service specific factors:
+    const insights = {
+      responseTime: this.analyzeResponseTime(reviews),
+      professionalismScore: this.analyzeProfessionalism(reviews),
+      pricingMentions: this.extractPricingFeedback(reviews),
+      trustIndicators: {
+        onTime: this.checkPunctuality(reviews),
+        cleanWork: this.checkCleanliness(reviews),
+        honestPricing: this.checkPricingTransparency(reviews),
+        licensed: this.checkLicensingMentions(reviews)
+      },
+      commonComplaints: this.extractServiceComplaints(reviews),
+      competitorMentions: this.findCompetitorComparisons(reviews),
+      emergencyServiceFeedback: this.analyzeEmergencyResponse(reviews),
+      technicianMentions: this.analyzeTechnicianFeedback(reviews)
+    };
+    
+    return insights;
+  }
+}
+5. Service Area Analyzer (/server/services/serviceAreaAnalyzer.ts)
+typescriptexport class ServiceAreaAnalyzer {
+  async analyzeServiceCoverage(
+    businessProfile: any,
+    competitorProfiles: any[]
+  ): Promise<ServiceAreaInsights> {
+    return {
+      primaryServiceArea: this.calculatePrimaryArea(businessProfile),
+      serviceRadius: this.estimateServiceRadius(businessProfile),
+      coveredZipCodes: this.extractZipCodes(businessProfile),
+      competitorOverlap: this.calculateAreaOverlap(competitorProfiles),
+      underservedAreas: this.identifyGapAreas(businessProfile, competitorProfiles),
+      expansionOpportunities: this.suggestExpansionAreas()
+    };
+  }
+}
+Frontend Components (React + TypeScript)
+1. Dashboard Layout (/client/src/components/home-service-dashboard.tsx)
+tsximport React from 'react';
+
+export const HomeServiceDashboard: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-black text-white">
+      {/* Header - Pure black with white text */}
+      <header className="border-b border-gray-800 bg-black">
+        <div className="container mx-auto px-6 py-4">
+          <h1 className="text-2xl font-bold tracking-tight">
+            HomeServicePro Scanner
+          </h1>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="container mx-auto px-6 py-8">
+        {/* Search Section */}
+        <SearchSection />
+        
+        {/* Results Grid */}
+        <div className="grid grid-cols-12 gap-6 mt-8">
+          {/* Competitor Intelligence */}
+          <div className="col-span-8 space-y-6">
+            <CompetitorRankings />
+            <LocalSEOPerformance />
+            <ReviewAnalysis />
+          </div>
+          
+          {/* Sidebar Metrics */}
+          <div className="col-span-4 space-y-6">
+            <PerformanceScore />
+            <ServiceAreaMap />
+            <QuickWins />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+2. Data Visualization Components
+tsx// All data visualizations use ONLY dark orange (#FF6B35)
+export const MetricCard: React.FC<{
+  label: string;
+  value: number;
+  trend?: 'up' | 'down' | 'stable';
+}> = ({ label, value, trend }) => {
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-6">
+      <p className="text-black text-sm font-medium mb-2">{label}</p>
+      <p className="text-4xl font-bold text-[#FF6B35]">
+        {value.toLocaleString()}
+      </p>
+      {trend && (
+        <div className="mt-2 flex items-center">
+          <TrendIcon trend={trend} className="text-[#FF6B35]" />
+        </div>
+      )}
+    </div>
+  );
+};
+3. Competitor Comparison Table
+tsxexport const CompetitorTable: React.FC = () => {
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <table className="w-full">
+        <thead className="bg-black text-white">
+          <tr>
+            <th className="px-6 py-3 text-left">Competitor</th>
+            <th className="px-6 py-3 text-center">
+              <span className="text-[#FF6B35]">Reviews</span>
+            </th>
+            <th className="px-6 py-3 text-center">
+              <span className="text-[#FF6B35]">Rating</span>
+            </th>
+            <th className="px-6 py-3 text-center">
+              <span className="text-[#FF6B35]">Response Time</span>
+            </th>
+            <th className="px-6 py-3 text-center">
+              <span className="text-[#FF6B35]">Market Share</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {/* Table rows with black text and orange data */}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+API Endpoints Updates
+1. Search Endpoint (/api/search/home-service)
+typescriptapp.post('/api/search/home-service', async (req, res) => {
+  const { businessName, location, serviceType } = req.body;
+  
+  // Search for home service businesses
+  // Prioritize Google My Business data
+  // Include service area information
+  // Check for emergency service indicators
+});
+2. Scan Endpoint (/api/scan/home-service)
+typescriptapp.get('/api/scan/home-service/:placeId', async (req, res) => {
+  // Stream progress updates via SSE
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive'
+  });
+
+  // Scanning phases tailored for home services:
+  // 1. "Analyzing service area coverage..." (15%)
+  // 2. "Checking emergency service rankings..." (30%)
+  // 3. "Evaluating competitor landscape..." (45%)
+  // 4. "Analyzing customer trust signals..." (60%)
+  // 5. "Reviewing pricing intelligence..." (75%)
+  // 6. "Generating growth opportunities..." (90%)
+  // 7. "Finalizing recommendations..." (100%)
+});
+Database Schema Updates (/shared/schema.ts)
+typescriptexport const homeServiceBusinessTable = pgTable('home_service_businesses', {
+  id: serial('id').primaryKey(),
+  placeId: text('place_id').notNull(),
+  businessName: text('business_name').notNull(),
+  serviceType: text('service_type').notNull(), // hvac, plumbing, roofing, etc.
+  serviceAreas: json('service_areas'), // Array of zip codes/cities
+  
+  // Certifications and Trust
+  licenses: json('licenses'),
+  certifications: json('certifications'),
+  insurance: json('insurance'),
+  yearsInBusiness: integer('years_in_business'),
+  
+  // Service Capabilities
+  emergencyService: boolean('emergency_service').default(false),
+  commercialService: boolean('commercial_service').default(false),
+  residentialService: boolean('residential_service').default(true),
+  
+  // Competitive Intelligence
+  fleetSize: text('fleet_size'), // small, medium, large
+  employeeCount: text('employee_count'), // 1-5, 6-20, 21-50, 50+
+  pricingTier: text('pricing_tier'), // budget, moderate, premium
+  
+  // Performance Metrics
+  responseTimeHours: decimal('response_time_hours'),
+  completionRate: decimal('completion_rate'),
+  repeatCustomerRate: decimal('repeat_customer_rate'),
+  
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
+export const competitorAnalysisTable = pgTable('competitor_analyses', {
+  id: serial('id').primaryKey(),
+  targetBusinessId: integer('target_business_id').references(() => homeServiceBusinessTable.id),
+  
+  // Market Position
+  marketPosition: integer('market_position'), // 1-10 ranking
+  marketShare: decimal('market_share'), // Estimated percentage
+  
+  // Competitive Advantages
+  advantages: json('advantages'), // Array of advantage objects
+  disadvantages: json('disadvantages'),
+  opportunities: json('opportunities'),
+  threats: json('threats'),
+  
+  // Keyword Performance
+  emergencyKeywordRankings: json('emergency_keyword_rankings'),
+  localKeywordRankings: json('local_keyword_rankings'),
+  brandedKeywordRankings: json('branded_keyword_rankings'),
+  
+  scanDate: timestamp('scan_date').defaultNow()
+});
+Key Differentiators for Home Services
+1. Urgency-Focused Keywords
+typescriptconst urgencyKeywords = [
+  `emergency ${serviceType} ${city}`,
+  `24 hour ${serviceType} near me`,
+  `same day ${serviceType} service`,
+  `${serviceType} open now`,
+  `urgent ${serviceType} repair`,
+  `after hours ${serviceType}`,
+  `weekend ${serviceType} service`
+];
+2. Trust Signal Analysis
+typescriptconst trustSignals = {
+  licensing: checkForLicenseNumber(businessProfile),
+  insurance: checkForInsuranceMention(businessProfile),
+  bonding: checkForBondingInfo(businessProfile),
+  certifications: extractCertifications(businessProfile),
+  warranties: checkForWarrantyOffers(businessProfile),
+  guarantees: checkForSatisfactionGuarantee(businessProfile),
+  bbb: checkBBBAccreditation(businessProfile),
+  yearsInBusiness: calculateYearsInBusiness(businessProfile)
+};
+3. Seasonal Intelligence
+typescriptconst seasonalAnalysis = {
+  currentDemand: calculateSeasonalDemand(serviceType, currentMonth),
+  peakMonths: getServicePeakMonths(serviceType),
+  preparationRecommendations: getSeasonalPrepTips(serviceType, upcomingMonths),
+  keywordSeasonality: analyzeKeywordSeasonalTrends(keywords, serviceType)
+};
+4. Service Area Optimization
+typescriptconst serviceAreaStrategy = {
+  currentCoverage: mapCurrentServiceArea(businessProfile),
+  competitorCoverage: mapCompetitorAreas(competitors),
+  gapAreas: identifyUnderservedZipCodes(marketData),
+  expansionROI: calculateExpansionPotential(gapAreas),
+  routeOptimization: suggestServiceRoutes(currentJobs, serviceArea)
+};
+Progressive Enhancement Features
+Phase 1: Core Scanning (Week 1-2)
+
+Business profile analysis
+Basic competitor identification
+Google My Business optimization check
+Review sentiment analysis
+Basic keyword rankings
+
+Phase 2: Advanced Intelligence (Week 3-4)
+
+Emergency service keyword tracking
+Seasonal demand forecasting
+Service area heat mapping
+Pricing intelligence (where available)
+Technician mention analysis
+
+Phase 3: Predictive Analytics (Week 5-6)
+
+Lead volume predictions
+Seasonal preparedness scoring
+Competitor movement alerts
+Market saturation analysis
+Expansion opportunity scoring
+
+Environment Variables
+env# Google APIs
+GOOGLE_PLACES_API_KEY=your_key
+GOOGLE_MAPS_API_KEY=your_key
+
+# DataForSEO
+DATAFORSEO_LOGIN=your_login
+DATAFORSEO_PASSWORD=your_password
+
+# OpenAI (for review analysis)
+OPENAI_API_KEY=your_key
+
+# Database
+DATABASE_URL=postgresql://user:pass@localhost/homeservicepro
+
+# Service-Specific APIs (optional)
+BUILDZOOM_API_KEY=your_key  # For contractor data
+ANGI_API_KEY=your_key       # For Angi leads data
+HOMEADVISOR_API_KEY=your_key # For HomeAdvisor data
+Testing Scenarios
+Test Business Examples
+
+HVAC Company: "Johnson Heating & Cooling" - Multi-city coverage
+Emergency Plumber: "24/7 Plumbing Pros" - Urgency-focused
+Roofing Contractor: "Storm Guard Roofing" - Seasonal business
+Pest Control: "EcoShield Pest Solutions" - Recurring service model
+Electrician: "Bolt Electric Services" - Commercial & residential
+
+Performance Optimizations
+
+Batch API Calls: Combine multiple keyword checks into single requests
+Intelligent Caching: Cache service area data (changes infrequently)
+Progressive Loading: Load critical metrics first, enhancement data async
+Smart Scanning: Skip seasonal analysis during off-seasons
+Competitor Sampling: Analyze top 5 competitors in detail, others in summary
+
+Success Metrics
+The platform should deliver:
+
+30-second initial scan with basic intelligence
+2-minute deep scan with full competitive analysis
+90% accuracy in service type detection
+Real-time emergency keyword rankings
+Weekly competitor movement tracking
+Monthly seasonal preparedness reports
+
+UI Implementation Notes
+
+Everything is black and white except data visualizations
+Dark orange (#FF6B35) is used EXCLUSIVELY for:
+
+Numbers and metrics
+Chart elements
+Progress bars
+Data points
+Performance scores
+
+
+No gradients or colors in UI elements (buttons, cards, borders)
+High contrast for accessibility (pure black on white, white on black)
+Minimal shadows - use borders instead
+Sans-serif typography throughout (Inter preferred)
+
+This platform transforms local home service marketing by providing military-grade competitive intelligence with a stark, professional interface that lets the data speak for itself through strategic use of dark orange highlights.

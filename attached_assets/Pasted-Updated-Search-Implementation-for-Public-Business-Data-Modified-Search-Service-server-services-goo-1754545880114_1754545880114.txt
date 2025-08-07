@@ -1,0 +1,393 @@
+Updated Search Implementation for Public Business Data
+Modified Search Service (/server/services/googleBusinessSearchService.ts)
+typescriptimport axios from 'axios';
+
+export class GoogleBusinessSearchService {
+  private apiKey: string;
+
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+  }
+
+  /**
+   * Search for home service businesses using only PUBLIC Google Places data
+   * No owner authentication required - only publicly available information
+   */
+  async searchHomeServiceBusinesses(
+    query: string,
+    location: string,
+    serviceType?: string
+  ) {
+    try {
+      // Build search query for public business search
+      const searchQuery = serviceType 
+        ? `${serviceType} ${query} near ${location}`
+        : `${query} near ${location}`;
+
+      console.log('🔍 Searching public Google Places data for:', searchQuery);
+
+      // Use Google Places Text Search API - PUBLIC DATA ONLY
+      const response = await axios.get(
+        'https://maps.googleapis.com/maps/api/place/textsearch/json',
+        {
+          params: {
+            query: searchQuery,
+            key: this.apiKey,
+            type: 'establishment'
+          }
+        }
+      );
+
+      if (response.data?.results) {
+        // Process only PUBLIC information from search results
+        const publicResults = await this.processPublicResults(
+          response.data.results,
+          serviceType
+        );
+
+        return {
+          success: true,
+          results: publicResults,
+          totalResults: response.data.results.length
+        };
+      }
+
+      return {
+        success: false,
+        results: [],
+        error: 'No businesses found'
+      };
+
+    } catch (error) {
+      console.error('Google Places search error:', error);
+      return {
+        success: false,
+        results: [],
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Process search results using ONLY publicly available data
+   * No owner-specific or private business data accessed
+   */
+  private async processPublicResults(results: any[], serviceType?: string) {
+    const processedResults = [];
+
+    for (const place of results.slice(0, 20)) {
+      try {
+        // Get PUBLIC details only - what any customer can see
+        const publicDetails = await this.getPublicBusinessDetails(place.place_id);
+        
+        // Detect service type from PUBLIC information
+        const detectedServiceType = this.detectServiceTypeFromPublicData(
+          place.name,
+          place.types || [],
+          publicDetails
+        );
+
+        // Only include relevant home service businesses
+        if (this.isHomeServiceBusiness(detectedServiceType, place.types)) {
+          processedResults.push({
+            // Basic public information
+            placeId: place.place_id,
+            name: place.name,
+            address: place.formatted_address,
+            
+            // Public ratings and reviews
+            rating: place.rating || 0,
+            reviewCount: place.user_ratings_total || 0,
+            priceLevel: place.price_level || null,
+            
+            // Business status (public info)
+            businessStatus: place.business_status || 'OPERATIONAL',
+            currentlyOpen: place.opening_hours?.open_now || null,
+            
+            // Service type detection
+            serviceType: detectedServiceType,
+            
+            // Location for mapping (public)
+            location: {
+              lat: place.geometry?.location?.lat,
+              lng: place.geometry?.location?.lng
+            },
+            
+            // Additional PUBLIC details
+            publicInfo: {
+              phone: publicDetails.formatted_phone_number || null,
+              website: publicDetails.website || null,
+              hours: publicDetails.opening_hours || null,
+              photos: publicDetails.photos?.length || 0,
+              
+              // Public indicators anyone can see
+              userRatingsTotal: publicDetails.user_ratings_total || 0,
+              types: publicDetails.types || [],
+              vicinity: publicDetails.vicinity || null,
+              
+              // What customers see in reviews
+              popularTimes: publicDetails.popular_times || null,
+              wheelchairAccessible: publicDetails.wheelchair_accessible_entrance || null
+            },
+            
+            // Competitive insights from PUBLIC data only
+            insights: {
+              hasWebsite: !!publicDetails.website,
+              hasPhone: !!publicDetails.formatted_phone_number,
+              isHighlyRated: (place.rating || 0) >= 4.5,
+              isWellReviewed: (place.user_ratings_total || 0) >= 50,
+              isCurrentlyOpen: place.opening_hours?.open_now || false,
+              appearsActive: place.business_status === 'OPERATIONAL'
+            }
+          });
+        }
+      } catch (error) {
+        console.error(`Error processing public data for ${place.place_id}:`, error);
+      }
+    }
+
+    // Sort by public metrics (rating * review count)
+    return processedResults.sort((a, b) => {
+      const scoreA = (a.rating || 0) * Math.log10((a.reviewCount || 0) + 1);
+      const scoreB = (b.rating || 0) * Math.log10((b.reviewCount || 0) + 1);
+      return scoreB - scoreA;
+    });
+  }
+
+  /**
+   * Get ONLY public business details - what any customer can see
+   * No private/owner data accessed
+   */
+  private async getPublicBusinessDetails(placeId: string) {
+    try {
+      const response = await axios.get(
+        'https://maps.googleapis.com/maps/api/place/details/json',
+        {
+          params: {
+            place_id: placeId,
+            // Only PUBLIC fields - what customers see
+            fields: 'name,rating,user_ratings_total,formatted_phone_number,website,opening_hours,types,price_level,business_status,vicinity,reviews,photos,wheelchair_accessible_entrance,formatted_address',
+            key: this.apiKey
+          }
+        }
+      );
+
+      return response.data?.result || {};
+    } catch (error) {
+      console.error(`Error fetching public details for ${placeId}:`, error);
+      return {};
+    }
+  }
+
+  /**
+   * Detect service type from PUBLIC business information only
+   */
+  private detectServiceTypeFromPublicData(name: string, types: string[], publicDetails: any): string {
+    const businessName = name.toLowerCase();
+    
+    // Check PUBLIC business name patterns
+    if (businessName.includes('hvac') || businessName.includes('heating') || businessName.includes('cooling') || businessName.includes('air condition')) {
+      return 'hvac';
+    }
+    if (businessName.includes('plumb') || businessName.includes('pipe') || businessName.includes('drain')) {
+      return 'plumbing';
+    }
+    if (businessName.includes('roof') || businessName.includes('gutter') || businessName.includes('siding')) {
+      return 'roofing';
+    }
+    if (businessName.includes('pest') || businessName.includes('exterminat') || businessName.includes('termite')) {
+      return 'pest_control';
+    }
+    if (businessName.includes('electric') || businessName.includes('wiring')) {
+      return 'electrical';
+    }
+    if (businessName.includes('landscap') || businessName.includes('lawn') || businessName.includes('tree')) {
+      return 'landscaping';
+    }
+    if (businessName.includes('paint')) {
+      return 'painting';
+    }
+    if (businessName.includes('clean') || businessName.includes('maid') || businessName.includes('janitorial')) {
+      return 'cleaning';
+    }
+
+    // Check PUBLIC Google Places types
+    if (types.includes('plumber')) return 'plumbing';
+    if (types.includes('electrician')) return 'electrical';
+    if (types.includes('roofing_contractor')) return 'roofing';
+    if (types.includes('general_contractor')) return 'general_contractor';
+    
+    return 'general_contractor'; // Default
+  }
+
+  /**
+   * Check if business is a home service provider using PUBLIC data
+   */
+  private isHomeServiceBusiness(serviceType: string, googleTypes: string[]): boolean {
+    const validServiceTypes = [
+      'hvac', 'plumbing', 'roofing', 'pest_control', 'electrical',
+      'landscaping', 'painting', 'flooring', 'windows', 'garage_door',
+      'general_contractor', 'handyman', 'cleaning', 'appliance_repair'
+    ];
+
+    if (validServiceTypes.includes(serviceType)) {
+      return true;
+    }
+
+    const homeServiceGoogleTypes = [
+      'plumber', 'electrician', 'roofing_contractor', 'general_contractor',
+      'home_goods_store', 'hardware_store', 'contractor', 'locksmith',
+      'moving_company', 'storage'
+    ];
+
+    return googleTypes.some(type => homeServiceGoogleTypes.includes(type));
+  }
+}
+Competitive Analysis Using Only Public Data (/server/services/publicDataAnalyzer.ts)
+typescriptexport class PublicDataAnalyzer {
+  /**
+   * Analyze competitors using ONLY publicly available data
+   * No authentication or owner access required
+   */
+  async analyzePublicCompetitorData(targetBusiness: any, competitors: any[]) {
+    return {
+      // Market position based on PUBLIC metrics
+      marketPosition: this.calculateMarketPosition(targetBusiness, competitors),
+      
+      // Competitive advantages visible to customers
+      publicAdvantages: {
+        ratingAdvantage: this.compareRatings(targetBusiness, competitors),
+        reviewVolumeAdvantage: this.compareReviewVolume(targetBusiness, competitors),
+        responseIndicators: this.analyzePublicResponsePatterns(targetBusiness, competitors),
+        visibilityScore: this.calculatePublicVisibility(targetBusiness)
+      },
+      
+      // Gaps identified from PUBLIC data
+      competitiveGaps: {
+        missingWebsite: !targetBusiness.publicInfo.website,
+        lowReviewCount: targetBusiness.reviewCount < 20,
+        noHoursListed: !targetBusiness.publicInfo.hours,
+        limitedPhotos: targetBusiness.publicInfo.photos < 10,
+        ratingBelowAverage: this.isRatingBelowAverage(targetBusiness, competitors)
+      },
+      
+      // Opportunities from PUBLIC analysis
+      opportunities: this.identifyPublicOpportunities(targetBusiness, competitors)
+    };
+  }
+
+  /**
+   * Calculate market position using only PUBLIC data
+   */
+  private calculateMarketPosition(target: any, competitors: any[]): number {
+    const allBusinesses = [target, ...competitors];
+    
+    // Sort by public performance metric (rating * reviews)
+    allBusinesses.sort((a, b) => {
+      const scoreA = (a.rating || 0) * Math.sqrt(a.reviewCount || 0);
+      const scoreB = (b.rating || 0) * Math.sqrt(b.reviewCount || 0);
+      return scoreB - scoreA;
+    });
+    
+    return allBusinesses.findIndex(b => b.placeId === target.placeId) + 1;
+  }
+
+  /**
+   * Analyze PUBLIC review patterns for response insights
+   */
+  private analyzePublicResponsePatterns(target: any, competitors: any[]): any {
+    // Analyze what's publicly visible in reviews
+    return {
+      // Check if recent reviews exist (indicates active business)
+      hasRecentActivity: target.reviewCount > 0,
+      
+      // Rating trend (if enough reviews)
+      ratingStability: target.reviewCount >= 10 ? 'stable' : 'insufficient_data',
+      
+      // Competitiveness based on public metrics
+      competitiveStrength: this.calculateCompetitiveStrength(target, competitors)
+    };
+  }
+
+  /**
+   * Identify opportunities using only PUBLIC information
+   */
+  private identifyPublicOpportunities(target: any, competitors: any[]): string[] {
+    const opportunities = [];
+    
+    // Website opportunity
+    if (!target.publicInfo.website && competitors.some(c => c.publicInfo.website)) {
+      opportunities.push('Add website to match competitor visibility');
+    }
+    
+    // Review volume opportunity
+    const avgCompetitorReviews = competitors.reduce((sum, c) => sum + c.reviewCount, 0) / competitors.length;
+    if (target.reviewCount < avgCompetitorReviews * 0.5) {
+      opportunities.push('Increase review volume to match market leaders');
+    }
+    
+    // Rating improvement opportunity
+    const avgCompetitorRating = competitors.reduce((sum, c) => sum + (c.rating || 0), 0) / competitors.length;
+    if (target.rating < avgCompetitorRating) {
+      opportunities.push('Improve service quality to boost ratings');
+    }
+    
+    // Photo opportunity
+    if (target.publicInfo.photos < 10) {
+      opportunities.push('Add more photos to improve listing appeal');
+    }
+    
+    // Hours listing opportunity
+    if (!target.publicInfo.hours) {
+      opportunities.push('Add business hours for better customer information');
+    }
+    
+    return opportunities;
+  }
+
+  private compareRatings(target: any, competitors: any[]): string {
+    const avgCompetitorRating = competitors.reduce((sum, c) => sum + (c.rating || 0), 0) / competitors.length;
+    const difference = target.rating - avgCompetitorRating;
+    
+    if (difference > 0.3) return 'above_average';
+    if (difference < -0.3) return 'below_average';
+    return 'average';
+  }
+
+  private compareReviewVolume(target: any, competitors: any[]): string {
+    const avgCompetitorReviews = competitors.reduce((sum, c) => sum + c.reviewCount, 0) / competitors.length;
+    const ratio = target.reviewCount / avgCompetitorReviews;
+    
+    if (ratio > 1.5) return 'market_leader';
+    if (ratio > 0.7) return 'competitive';
+    return 'needs_improvement';
+  }
+
+  private calculatePublicVisibility(target: any): number {
+    let score = 0;
+    
+    // Score based on PUBLIC data completeness
+    if (target.publicInfo.website) score += 20;
+    if (target.publicInfo.phone) score += 20;
+    if (target.publicInfo.hours) score += 15;
+    if (target.publicInfo.photos >= 10) score += 15;
+    if (target.rating >= 4.0) score += 15;
+    if (target.reviewCount >= 50) score += 15;
+    
+    return score;
+  }
+
+  private isRatingBelowAverage(target: any, competitors: any[]): boolean {
+    if (competitors.length === 0) return false;
+    const avgRating = competitors.reduce((sum, c) => sum + (c.rating || 0), 0) / competitors.length;
+    return target.rating < avgRating;
+  }
+
+  private calculateCompetitiveStrength(target: any, competitors: any[]): string {
+    const position = this.calculateMarketPosition(target, competitors);
+    const total = competitors.length + 1;
+    
+    if (position <= total * 0.2) return 'strong';
+    if (position <= total * 0.5) return 'moderate';
+    return 'weak';
+  }
