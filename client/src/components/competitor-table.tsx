@@ -71,12 +71,12 @@ export function CompetitorTable({ competitors, targetBusinessId, marketPosition 
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <span className="text-[var(--color-data-orange)] font-bold">
-                      {competitor.rating.toFixed(1)}
+                      {typeof competitor.rating === 'number' ? competitor.rating.toFixed(1) : competitor.rating || '0.0'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <span className="text-[var(--color-data-orange)] font-bold">
-                      {competitor.reviewCount.toLocaleString()}
+                      {(competitor.reviewCount || 0).toLocaleString()}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">

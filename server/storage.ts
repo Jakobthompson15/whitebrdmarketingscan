@@ -34,11 +34,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createBusiness(insertBusiness: InsertBusiness): Promise<Business> {
-    const [business] = await db
-      .insert(homeServiceBusinesses)
-      .values(insertBusiness)
-      .returning();
-    return business;
+    try {
+      const [business] = await db
+        .insert(homeServiceBusinesses)
+        .values(insertBusiness)
+        .returning();
+      return business;
+    } catch (error: any) {
+      // If business already exists, return the existing one
+      if (error.code === '23505' && error.constraint === 'home_service_businesses_place_id_unique') {
+        const [existing] = await db.select().from(homeServiceBusinesses).where(eq(homeServiceBusinesses.placeId, insertBusiness.placeId!));
+        if (existing) {
+          return existing;
+        }
+      }
+      throw error;
+    }
   }
 
   async getBusinessById(id: number): Promise<Business | undefined> {
