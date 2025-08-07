@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Primary Colors - Black & White Base */
+  --color-black: hsl(0, 0%, 0%);
+  --color-off-black: hsl(0, 0%, 4%);
+  --color-dark-gray: hsl(0, 0%, 10%);
+  --color-medium-gray: hsl(0, 0%, 18%);
+  --color-light-gray: hsl(0, 0%, 90%);
+  --color-off-white: hsl(0, 0%, 96%);
+  --color-white: hsl(0, 0%, 100%);
+  
+  /* Accent Color - Dark Orange for ALL data/visualizations */
+  --color-data-orange: hsl(20, 100%, 60%);
+  --color-data-orange-dark: hsl(20, 74%, 54%);
+  --color-data-orange-light: hsl(20, 100%, 68%);
+  --color-data-orange-fade: hsla(20, 100%, 60%, 0.1);
+  
+  /* Functional Colors */
+  --color-success: hsl(20, 100%, 60%);
+  --color-warning: hsl(20, 100%, 60%);
+  --color-error: hsl(20, 100%, 60%);
+  --color-info: hsl(20, 100%, 60%);
+  
+  /* Design System Variables */
+  --background: hsl(0, 0%, 0%);
+  --foreground: hsl(0, 0%, 100%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(0, 0%, 0%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(0, 0%, 0%);
+  --primary: hsl(20, 100%, 60%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(0, 0%, 0%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --muted: hsl(0, 0%, 96%);
+  --muted-foreground: hsl(0, 0%, 40%);
+  --accent: hsl(0, 0%, 96%);
+  --accent-foreground: hsl(0, 0%, 0%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(0, 0%, 90%);
+  --input: hsl(0, 0%, 96%);
+  --ring: hsl(20, 100%, 60%);
+  
+  /* Font Family */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: hsl(0, 0%, 0%);
+  --foreground: hsl(0, 0%, 100%);
+  --card: hsl(0, 0%, 4%);
+  --card-foreground: hsl(0, 0%, 100%);
+  --popover: hsl(0, 0%, 0%);
+  --popover-foreground: hsl(0, 0%, 100%);
+  --primary: hsl(20, 100%, 60%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(0, 0%, 96%);
+  --secondary-foreground: hsl(0, 0%, 0%);
+  --muted: hsl(0, 0%, 4%);
+  --muted-foreground: hsl(0, 0%, 60%);
+  --accent: hsl(0, 0%, 10%);
+  --accent-foreground: hsl(20, 100%, 60%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(0, 0%, 18%);
+  --input: hsl(0, 0%, 18%);
+  --ring: hsl(20, 100%, 60%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+
+  /* Custom animations */
+  @keyframes pulse-slow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  @keyframes slide-up {
+    0% { 
+      transform: translateY(10px); 
+      opacity: 0; 
+    }
+    100% { 
+      transform: translateY(0); 
+      opacity: 1; 
+    }
+  }
+  
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  
+  @keyframes progress {
+    0% { width: 0%; }
+    100% { width: 100%; }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+  }
+  
+  .animate-progress {
+    animation: progress 2s ease-in-out;
+  }
+}
+
+/* Data visualization styles - ALL use orange */
+.data-metric {
+  @apply text-[var(--color-data-orange)] font-bold;
+}
+
+.data-chart {
+  color: var(--color-data-orange);
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, var(--color-data-orange) 0%, var(--color-data-orange-light) 100%);
+}
+
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
