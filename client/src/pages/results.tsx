@@ -25,7 +25,7 @@ export function ResultsPage({ analysisId, businessId, onNewSearch }: ResultsPage
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-white text-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[var(--color-data-orange)] mx-auto mb-4"></div>
           <p className="text-xl">Loading results...</p>
@@ -36,7 +36,7 @@ export function ResultsPage({ analysisId, businessId, onNewSearch }: ResultsPage
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-white text-black flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl text-red-400 mb-4">Failed to load analysis results</p>
           <Button onClick={onNewSearch} className="bg-[var(--color-data-orange)] hover:bg-[var(--color-data-orange-dark)]">
@@ -60,17 +60,17 @@ export function ResultsPage({ analysisId, businessId, onNewSearch }: ResultsPage
     .slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-white text-black">
       {/* Header */}
-      <header className="border-b border-gray-800 bg-black">
+      <header className="border-b border-gray-200 bg-white">
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold tracking-tight text-white">
+              <h1 className="text-2xl font-bold tracking-tight text-black">
                 HomeServicePro Scanner
               </h1>
-              <div className="text-sm text-gray-400">
-                Results for <span className="text-white font-medium">{business.businessName}</span>
+              <div className="text-sm text-gray-600">
+                Results for <span className="text-black font-medium">{business.businessName}</span>
               </div>
             </div>
             <Button 
@@ -95,13 +95,13 @@ export function ResultsPage({ analysisId, businessId, onNewSearch }: ResultsPage
           />
           <MetricCard
             title="Rating Score"
-            value={business.rating?.toFixed(1) || '0.0'}
+            value={typeof business.rating === 'number' ? business.rating.toFixed(1) : (business.rating || '0.0')}
             subtitle={`vs avg ${analysis.averageCompetitorRating}`}
             icon={Star}
           />
           <MetricCard
             title="Review Volume"
-            value={business.reviewCount?.toLocaleString() || '0'}
+            value={(business.reviewCount || 0).toLocaleString()}
             subtitle="reviews total"
             icon={MessageSquare}
           />

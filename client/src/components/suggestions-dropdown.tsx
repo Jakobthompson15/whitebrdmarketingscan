@@ -26,19 +26,19 @@ export function SuggestionsDropdown({ suggestions, isVisible, onSelect }: Sugges
   };
 
   return (
-    <div className={`absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50 transition-all duration-300 ${
+    <div className={`absolute top-full left-0 right-0 mt-2 bg-black rounded-xl shadow-2xl border border-gray-800 overflow-hidden z-50 transition-all duration-300 ${
       isVisible ? 'opacity-100 pointer-events-auto translate-y-0' : 'opacity-0 pointer-events-none translate-y-2'
     }`}>
       {suggestions.map((business) => (
         <div
           key={business.placeId}
           onClick={() => onSelect(business)}
-          className="px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0"
+          className="px-6 py-4 hover:bg-gray-800 cursor-pointer transition-colors duration-200 border-b border-gray-900 last:border-b-0"
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h4 className="font-semibold text-black text-lg">{business.name}</h4>
-              <p className="text-gray-600 text-sm mt-1">{business.address}</p>
+              <h4 className="font-semibold text-white text-lg">{business.name}</h4>
+              <p className="text-gray-400 text-sm mt-1">{business.address}</p>
               <div className="flex items-center mt-2">
                 <span className="text-[var(--color-data-orange)] font-bold text-sm">
                   {business.rating.toFixed(1)}
@@ -51,7 +51,7 @@ export function SuggestionsDropdown({ suggestions, isVisible, onSelect }: Sugges
                 </span>
               </div>
             </div>
-            <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+            <div className="text-xs text-gray-400 bg-gray-900 px-2 py-1 rounded-full">
               {business.serviceType}
             </div>
           </div>

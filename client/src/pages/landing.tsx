@@ -45,15 +45,15 @@ export function LandingPage({ onBusinessSelect }: LandingPageProps) {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white">
+    <div className="min-h-screen flex flex-col bg-white text-black">
       {/* Header */}
-      <header className="border-b border-gray-800 bg-black">
+      <header className="border-b border-gray-200 bg-white">
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-2xl font-bold tracking-tight text-black">
               HomeServicePro Scanner
             </h1>
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-gray-600">
               Competitor Intelligence Platform
             </div>
           </div>
@@ -65,11 +65,11 @@ export function LandingPage({ onBusinessSelect }: LandingPageProps) {
         <div className="w-full max-w-2xl text-center">
           {/* Hero Content */}
           <div className="mb-12 animate-fade-in">
-            <h2 className="text-5xl md:text-6xl font-black text-white mb-6 leading-tight">
+            <h2 className="text-5xl md:text-6xl font-black text-black mb-6 leading-tight">
               Dominate Your{' '}
               <span className="text-[var(--color-data-orange)]">Local Market</span>
             </h2>
-            <p className="text-xl text-gray-300 mb-8 leading-relaxed">
+            <p className="text-xl text-gray-700 mb-8 leading-relaxed">
               Get instant competitor intelligence for your home service business. 
               Analyze rankings, reviews, and growth opportunities in seconds.
             </p>
@@ -95,14 +95,14 @@ export function LandingPage({ onBusinessSelect }: LandingPageProps) {
           </div>
 
           {/* Call to Action */}
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-600 text-sm">
             Start typing to search for your business and discover competitor insights
           </p>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800 py-6">
+      <footer className="border-t border-gray-200 py-6">
         <div className="container mx-auto px-6 text-center text-gray-500 text-sm">
           <p>&copy; 2024 HomeServicePro Scanner. All rights reserved.</p>
         </div>
