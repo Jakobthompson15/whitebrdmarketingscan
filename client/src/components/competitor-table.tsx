@@ -17,7 +17,7 @@ export function CompetitorTable({ competitors, targetBusinessId, marketPosition 
   const calculateCompetitiveScore = (business: BusinessSuggestion): number => {
     const baseScore = (business.rating / 5) * 60;
     const reviewScore = Math.min(30, (business.reviewCount / 100) * 30);
-    const presenceScore = (business.publicInfo.website ? 5 : 0) + (business.publicInfo.phone ? 5 : 0);
+    const presenceScore = (business.publicInfo?.website ? 5 : 0) + (business.publicInfo?.phone ? 5 : 0);
     return Math.round(baseScore + reviewScore + presenceScore);
   };
 
