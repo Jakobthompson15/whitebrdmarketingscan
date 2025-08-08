@@ -4,6 +4,7 @@ import { BusinessSearch } from '@/components/business-search';
 import { SuggestionsDropdown } from '@/components/suggestions-dropdown';
 import { useDebounce } from '@/hooks/use-debounce';
 import { BusinessSuggestion } from '@/lib/types';
+import logo from '@assets/Whitebrd Co Logo_1754624175913.png';
 
 interface LandingPageProps {
   onBusinessSelect: (business: BusinessSuggestion) => void;
@@ -50,9 +51,12 @@ export function LandingPage({ onBusinessSelect }: LandingPageProps) {
       <header className="border-b border-gray-200 bg-white">
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold tracking-tight text-black">
-              HomeServicePro Scanner
-            </h1>
+            <div className="flex items-center space-x-3">
+              <img src={logo} alt="Whitebrd Co" className="h-8 w-8" />
+              <h1 className="text-2xl font-bold tracking-tight text-black">
+                Whitebrd Pro Scanner
+              </h1>
+            </div>
             <div className="text-sm text-gray-600">
               Competitor Intelligence Platform
             </div>
@@ -104,7 +108,7 @@ export function LandingPage({ onBusinessSelect }: LandingPageProps) {
       {/* Footer */}
       <footer className="border-t border-gray-200 py-6">
         <div className="container mx-auto px-6 text-center text-gray-500 text-sm">
-          <p>&copy; 2024 HomeServicePro Scanner. All rights reserved.</p>
+          <p>&copy; 2024 Whitebrd Pro Scanner. All rights reserved.</p>
         </div>
       </footer>
     </div>
