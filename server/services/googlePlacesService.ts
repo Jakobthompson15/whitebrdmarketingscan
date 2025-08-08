@@ -26,13 +26,50 @@ export class GooglePlacesService {
 
   constructor() {
     this.apiKey = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "mock_key";
-    // For development, we'll use mock data
-    console.log('🔧 Using mock Google Places service');
+    
+    if (this.apiKey === "mock_key") {
+      console.log('🔧 Using mock Google Places service');
+    } else {
+      console.log('🌐 Using real Google Places API');
+    }
   }
 
   async searchBusinesses(query: string): Promise<BusinessSuggestion[]> {
-    console.log('🔍 Mock searching for:', query);
+    // If no real API key, use mock data
+    if (this.apiKey === "mock_key") {
+      console.log('🔍 Mock searching for:', query);
+      return this.getMockBusinesses(query);
+    }
+
+    console.log('🔍 Searching for businesses:', query);
     
+    try {
+      // Use Google Places API Text Search
+      const searchUrl = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
+      const params = {
+        query: `${query} home services`,
+        key: this.apiKey,
+        type: 'establishment',
+        radius: 50000 // 50km radius
+      };
+
+      const response = await axios.get(searchUrl, { params });
+      
+      if (response.data.status !== 'OK' && response.data.status !== 'ZERO_RESULTS') {
+        console.error('Google Places API error:', response.data.status);
+        return this.getMockBusinesses(query);
+      }
+
+      const results = response.data.results || [];
+      return this.processSearchResults(results.slice(0, 10));
+      
+    } catch (error) {
+      console.error('Error searching businesses:', error);
+      return this.getMockBusinesses(query);
+    }
+  }
+
+  private getMockBusinesses(query: string): BusinessSuggestion[] {
     // Mock business suggestions based on query
     const mockBusinesses: BusinessSuggestion[] = [
       {
@@ -131,13 +168,73 @@ export class GooglePlacesService {
     return filtered.slice(0, 5);
   }
 
-  // These methods are not needed for mock data but kept for API compatibility
   private async processSearchResults(results: any[]): Promise<BusinessSuggestion[]> {
-    return [];
+    const businesses: BusinessSuggestion[] = [];
+    
+    for (const result of results) {
+      try {
+        // Get additional details for each place
+        const details = await this.getPlaceDetails(result.place_id);
+        
+        const serviceType = this.detectServiceType(result.name, result.types || []);
+        
+        // Only include home service businesses
+        if (!this.isHomeServiceBusiness(serviceType)) {
+          continue;
+        }
+
+        const business: BusinessSuggestion = {
+          placeId: result.place_id,
+          name: result.name,
+          address: result.formatted_address || '',
+          rating: result.rating || 0,
+          reviewCount: result.user_ratings_total || 0,
+          serviceType,
+          location: {
+            lat: result.geometry?.location?.lat || 0,
+            lng: result.geometry?.location?.lng || 0
+          },
+          publicInfo: {
+            phone: details.formatted_phone_number,
+            website: details.website,
+            hours: details.opening_hours,
+            photos: (result.photos || []).length,
+            businessStatus: result.business_status || 'OPERATIONAL',
+            currentlyOpen: details.opening_hours?.open_now
+          }
+        };
+        
+        businesses.push(business);
+        
+      } catch (error) {
+        console.error(`Error processing business ${result.name}:`, error);
+        continue;
+      }
+    }
+    
+    return businesses;
   }
 
   private async getPlaceDetails(placeId: string): Promise<any> {
-    return {};
+    try {
+      const detailsUrl = 'https://maps.googleapis.com/maps/api/place/details/json';
+      const params = {
+        place_id: placeId,
+        key: this.apiKey,
+        fields: 'formatted_phone_number,website,opening_hours'
+      };
+
+      const response = await axios.get(detailsUrl, { params });
+      
+      if (response.data.status === 'OK') {
+        return response.data.result || {};
+      }
+      
+      return {};
+    } catch (error) {
+      console.error('Error getting place details:', error);
+      return {};
+    }
   }
 
   private detectServiceType(name: string, types: string[]): string {
