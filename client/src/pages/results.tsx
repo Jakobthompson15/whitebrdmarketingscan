@@ -68,7 +68,7 @@ export function ResultsPage({ analysisId, businessId, onNewSearch }: ResultsPage
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                <img src={logo} alt="Whitebrd Co" className="h-8 w-8" />
+                <img src={logo} alt="Whitebrd Co" className="h-12 w-12" />
                 <h1 className="text-2xl font-bold tracking-tight text-black">
                   Whitebrd Pro Scanner
                 </h1>
