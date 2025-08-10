@@ -4,6 +4,7 @@ import { MetricCard } from '@/components/metric-card';
 import { CompetitorTable } from '@/components/competitor-table';
 import { BarChart3, Star, MessageSquare, TrendingUp } from 'lucide-react';
 import { CompetitorAnalysis, BusinessSuggestion } from '@/lib/types';
+import logo from '@assets/Logo_1754797907914.png';
 
 
 interface ResultsPageProps {
@@ -67,9 +68,12 @@ export function ResultsPage({ analysisId, businessId, onNewSearch }: ResultsPage
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold tracking-tight text-black">
-                Whitebrd Pro Scanner
-              </h1>
+              <div className="flex items-center space-x-3">
+                <img src={logo} alt="Whitebrd Co" className="h-10 w-16" />
+                <h1 className="text-2xl font-bold tracking-tight text-black">
+                  Whitebrd Pro Scanner
+                </h1>
+              </div>
               <div className="text-sm text-gray-600">
                 Results for <span className="text-black font-medium">{business.name}</span>
               </div>

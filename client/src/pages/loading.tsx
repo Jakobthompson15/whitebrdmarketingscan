@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProgressTracker } from '@/components/progress-tracker';
 import { BusinessSuggestion, ProgressUpdate } from '@/lib/types';
+import logo from '@assets/Logo_1754797907914.png';
 
 
 interface LoadingPageProps {
@@ -87,9 +88,12 @@ export function LoadingPage({ selectedBusiness, onBack, onComplete }: LoadingPag
       <header className="border-b border-gray-200 bg-white">
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold tracking-tight text-black">
-              Whitebrd Pro Scanner
-            </h1>
+            <div className="flex items-center space-x-3">
+              <img src={logo} alt="Whitebrd Co" className="h-10 w-16" />
+              <h1 className="text-2xl font-bold tracking-tight text-black">
+                Whitebrd Pro Scanner
+              </h1>
+            </div>
             <Button
               variant="ghost"
               size="sm"
