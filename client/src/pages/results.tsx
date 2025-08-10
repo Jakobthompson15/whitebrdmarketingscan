@@ -68,13 +68,13 @@ export function ResultsPage({ analysisId, businessId, onNewSearch }: ResultsPage
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                <img src={logo} alt="Whitebrd Co" className="h-16 w-32" />
+                <img src={logo} alt="Whitebrd Co" className="h-12 w-20" />
                 <h1 className="text-2xl font-bold tracking-tight text-black">
                   Whitebrd Pro Scanner
                 </h1>
               </div>
               <div className="text-sm text-gray-600">
-                Results for <span className="text-black font-medium">{business.businessName}</span>
+                Results for <span className="text-black font-medium">{business.name}</span>
               </div>
             </div>
             <Button 
@@ -256,7 +256,7 @@ export function ResultsPage({ analysisId, businessId, onNewSearch }: ResultsPage
                 
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-black">{business.businessName} (You)</span>
+                    <span className="text-sm text-black">{business.name} (You)</span>
                     <span className="text-[var(--color-data-orange)] font-bold text-sm">
                       {businessMarketShare.toFixed(1)}%
                     </span>
