@@ -4,7 +4,7 @@ import { MetricCard } from '@/components/metric-card';
 import { CompetitorTable } from '@/components/competitor-table';
 import { BarChart3, Star, MessageSquare, TrendingUp } from 'lucide-react';
 import { CompetitorAnalysis, BusinessSuggestion } from '@/lib/types';
-import logo from '@assets/Whitebrd Co Logo_1754624175913.png';
+import logo from '@assets/Logo_1754792923093.png';
 
 interface ResultsPageProps {
   analysisId: number;

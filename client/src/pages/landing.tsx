@@ -4,7 +4,7 @@ import { BusinessSearch } from '@/components/business-search';
 import { SuggestionsDropdown } from '@/components/suggestions-dropdown';
 import { useDebounce } from '@/hooks/use-debounce';
 import { BusinessSuggestion } from '@/lib/types';
-import logo from '@assets/Whitebrd Co Logo_1754624175913.png';
+import logo from '@assets/Logo_1754792923093.png';
 
 interface LandingPageProps {
   onBusinessSelect: (business: BusinessSuggestion) => void;
