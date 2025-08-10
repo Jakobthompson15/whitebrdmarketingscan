@@ -4,7 +4,7 @@ import { BusinessSearch } from '@/components/business-search';
 import { SuggestionsDropdown } from '@/components/suggestions-dropdown';
 import { useDebounce } from '@/hooks/use-debounce';
 import { BusinessSuggestion } from '@/lib/types';
-import logo from '@assets/Logo_1754792923093.png';
+
 
 interface LandingPageProps {
   onBusinessSelect: (business: BusinessSuggestion) => void;
@@ -51,12 +51,9 @@ export function LandingPage({ onBusinessSelect }: LandingPageProps) {
       <header className="border-b border-gray-200 bg-white">
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <img src={logo} alt="Whitebrd Co" className="h-12 w-20" />
-              <h1 className="text-2xl font-bold tracking-tight text-black">
-                Whitebrd Pro Scanner
-              </h1>
-            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-black">
+              Whitebrd Pro Scanner
+            </h1>
             <div className="text-sm text-gray-600">
               Competitor Intelligence Platform
             </div>
