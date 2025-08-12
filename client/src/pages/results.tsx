@@ -2,7 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { MetricCard } from '@/components/metric-card';
 import { CompetitorTable } from '@/components/competitor-table';
-import { BarChart3, Star, MessageSquare, TrendingUp } from 'lucide-react';
+import { AIInsightsComponent } from '@/components/ai-insights';
+import { BarChart3, Star, MessageSquare, TrendingUp, Brain } from 'lucide-react';
 import { CompetitorAnalysis, BusinessSuggestion } from '@/lib/types';
 import logo from '@assets/Logo_1754797907914.png';
 
@@ -273,6 +274,24 @@ export function ResultsPage({ analysisId, businessId, onNewSearch }: ResultsPage
             </div>
           </div>
         </div>
+
+        {/* AI Insights Section */}
+        {analysis.aiInsights && (
+          <div className="mt-12">
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-black flex items-center gap-2">
+                  <Brain className="h-6 w-6 text-[var(--color-data-orange)]" />
+                  AI-Powered Strategic Analysis
+                </h2>
+                <div className="text-xs text-gray-500 px-3 py-1 bg-gray-100 rounded-full">
+                  Powered by GPT-4o
+                </div>
+              </div>
+              <AIInsightsComponent insights={analysis.aiInsights} />
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

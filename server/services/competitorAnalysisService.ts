@@ -1,4 +1,5 @@
 import { GooglePlacesService, BusinessSuggestion } from './googlePlacesService';
+import { AIAnalysisService, AIInsights } from './aiAnalysisService';
 
 export interface CompetitorAnalysisResult {
   marketPosition: number;
@@ -12,13 +13,16 @@ export interface CompetitorAnalysisResult {
     averageRating: number;
     marketShare: number;
   };
+  aiInsights?: AIInsights;
 }
 
 export class CompetitorAnalysisService {
   private googlePlaces: GooglePlacesService;
+  private aiAnalysis: AIAnalysisService;
 
   constructor() {
     this.googlePlaces = new GooglePlacesService();
+    this.aiAnalysis = new AIAnalysisService();
   }
 
   async analyzeCompetition(targetBusiness: BusinessSuggestion): Promise<CompetitorAnalysisResult> {
@@ -40,7 +44,8 @@ export class CompetitorAnalysisService {
       // Market analysis
       const marketAnalysis = this.analyzeMarket(targetBusiness, competitors);
 
-      return {
+      // Generate AI insights
+      const baseResult = {
         marketPosition,
         competitiveScore,
         performanceScore,
@@ -48,6 +53,13 @@ export class CompetitorAnalysisService {
         opportunities,
         competitors,
         marketAnalysis
+      };
+
+      const aiInsights = await this.aiAnalysis.generateCompetitorInsights(targetBusiness, baseResult);
+
+      return {
+        ...baseResult,
+        aiInsights
       };
     } catch (error) {
       console.error('Error analyzing competition:', error);

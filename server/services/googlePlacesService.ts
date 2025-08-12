@@ -99,7 +99,7 @@ export class GooglePlacesService {
         location: { lat: 33.4734, lng: -112.0431 },
         publicInfo: {
           phone: '(555) 234-5678',
-          website: null,
+          website: undefined,
           hours: { open_now: false },
           photos: 8,
           businessStatus: 'OPERATIONAL',
@@ -150,7 +150,7 @@ export class GooglePlacesService {
         location: { lat: 33.3962, lng: -112.0651 },
         publicInfo: {
           phone: '(555) 567-8901',
-          website: null,
+          website: undefined,
           hours: { open_now: false },
           photos: 18,
           businessStatus: 'OPERATIONAL',

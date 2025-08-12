@@ -19,6 +19,16 @@ export interface BusinessSuggestion {
   };
 }
 
+export interface AIInsights {
+  executiveSummary: string;
+  keyFindings: string[];
+  strategicRecommendations: string[];
+  marketOpportunities: string[];
+  competitiveAdvantages: string[];
+  actionItems: string[];
+  riskFactors: string[];
+}
+
 export interface CompetitorAnalysis {
   id: number;
   targetBusinessId: number;
@@ -32,6 +42,7 @@ export interface CompetitorAnalysis {
   averageCompetitorRating: number;
   totalCompetitors: number;
   scanDate: string;
+  aiInsights?: AIInsights;
 }
 
 export interface ProgressUpdate {

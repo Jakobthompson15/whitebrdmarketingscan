@@ -2,9 +2,9 @@
 
 ## Overview
 
-HomeServicePro Scanner is a competitor intelligence and marketing analysis platform specifically designed for home service businesses (HVAC, plumbing, roofing, pest control, electrical, landscaping, etc.). The platform analyzes service-specific keywords, urgency indicators, trust signals, service area coverage, and seasonal patterns to provide comprehensive competitor intelligence for local home service providers.
+Whitebrd Pro Scanner is an AI-powered competitor intelligence and marketing analysis platform specifically designed for home service businesses (HVAC, plumbing, roofing, pest control, electrical, landscaping, etc.). The platform combines real business data from Google Places API with advanced AI analysis to provide strategic insights, market positioning recommendations, and actionable business intelligence for local home service providers.
 
-The application is built as a full-stack web application with a React frontend, Express.js backend, and PostgreSQL database. It leverages the Google Places API to gather public business data and provides real-time competitor analysis with streaming progress updates.
+The application is built as a full-stack web application with a React frontend, Express.js backend, and PostgreSQL database. It leverages the Google Places API to gather authentic business data and OpenAI's GPT-4o to generate comprehensive strategic analysis with real-time competitor intelligence and streaming progress updates.
 
 ## User Preferences
 
@@ -23,7 +23,8 @@ Preferred communication style: Simple, everyday language.
 - **Framework**: Express.js with TypeScript running on Node.js
 - **API Design**: RESTful API with streaming endpoints for real-time progress updates
 - **Database ORM**: Drizzle ORM with type-safe schema definitions
-- **Services**: Modular service architecture with GooglePlacesService and CompetitorAnalysisService
+- **Services**: Modular service architecture with GooglePlacesService, CompetitorAnalysisService, and AIAnalysisService
+- **AI Integration**: OpenAI GPT-4o for strategic analysis, review sentiment analysis, and business recommendations
 
 ### Database Architecture
 - **Database**: PostgreSQL with Neon serverless hosting
@@ -49,7 +50,8 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 ### Third-party Services
-- **Google Places API**: Primary data source for business information and competitor discovery
+- **Google Places API**: Primary data source for authentic business information and competitor discovery
+- **OpenAI API**: GPT-4o model for AI-powered strategic analysis, market insights, and business recommendations
 - **Neon Database**: Serverless PostgreSQL hosting for production database
 - **Google Maps Integration**: Location-based services and geocoding capabilities
 
@@ -65,3 +67,23 @@ Preferred communication style: Simple, everyday language.
 - **Type Safety**: TypeScript throughout the stack with strict type checking
 - **Database Management**: Drizzle Kit for schema migrations and database management
 - **Code Quality**: Tailwind CSS for consistent styling, shadcn/ui for component consistency
+
+## Recent Changes (August 12, 2025)
+
+### AI Integration Enhancement
+- **Added OpenAI GPT-4o Integration**: Implemented AIAnalysisService for comprehensive strategic analysis
+- **Enhanced Competitor Analysis**: Integrated AI insights into competitor analysis workflow
+- **New AI Features**:
+  - Executive summaries of competitive positioning
+  - Strategic recommendations based on market data
+  - Market opportunity identification
+  - Risk factor analysis
+  - Actionable business insights
+  - Review sentiment analysis capabilities
+- **Frontend AI Components**: Created AIInsightsComponent with comprehensive UI for displaying AI-generated insights
+- **Real-time Analysis**: AI analysis runs automatically during competitor scanning process
+
+### Branding Updates
+- **Logo Integration**: Added and refined Whitebrd Co. logo placement in headers
+- **Name Change**: Updated from "HomeServicePro Scanner" to "Whitebrd Pro Scanner"
+- **Visual Refinements**: Optimized logo sizing and background color matching
