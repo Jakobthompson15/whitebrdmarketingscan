@@ -120,43 +120,60 @@ export class EnhancedAnalysisService {
   private generateLocalBusinessKeywords(business: BusinessSuggestion, city: string, state: string): string[] {
     const service = business.serviceType.toLowerCase();
     const businessName = business.name;
+    const stateAbbr = this.getStateAbbreviation(state);
+    
+    // Clean city name - remove any zip codes or extra characters
+    const cleanCity = city.replace(/\d{5}.*$/, '').trim();
+    
+    console.log(`🎯 Generating keywords for ${service} in ${cleanCity}, ${stateAbbr}`);
     
     const keywords = [
-      // Core local keywords
-      `${service} ${city}`,
-      `${service} ${city} ${state}`,
-      `${city} ${service}`,
-      `${service} near me`,
-      `${service} service ${city}`,
-      `${service} contractor ${city}`,
-      `${service} company ${city}`,
+      // Core local keywords - city focused
+      `${service} ${cleanCity}`,
+      `${cleanCity} ${service}`,
+      `${service} service ${cleanCity}`,
+      `${service} contractor ${cleanCity}`,
+      `${service} company ${cleanCity}`,
+      
+      // State + city combinations
+      `${service} ${cleanCity} ${stateAbbr}`,
+      `${cleanCity} ${stateAbbr} ${service}`,
       
       // Emergency keywords (high value for home services)
-      `emergency ${service} ${city}`,
-      `24 hour ${service} ${city}`,
-      `${service} emergency service ${city}`,
+      `emergency ${service} ${cleanCity}`,
+      `24 hour ${service} ${cleanCity}`,
+      `${service} emergency ${cleanCity}`,
       
       // Quality indicators
-      `best ${service} ${city}`,
-      `top ${service} ${city}`,
-      `professional ${service} ${city}`,
-      `reliable ${service} ${city}`,
+      `best ${service} ${cleanCity}`,
+      `top ${service} ${cleanCity}`,
+      `professional ${service} ${cleanCity}`,
+      `reliable ${service} ${cleanCity}`,
       
       // Specific service variations
-      `${service} repair ${city}`,
-      `${service} installation ${city}`,
-      `${service} replacement ${city}`,
-      `affordable ${service} ${city}`
+      `${service} repair ${cleanCity}`,
+      `${service} installation ${cleanCity}`,
+      `${service} replacement ${cleanCity}`,
+      `affordable ${service} ${cleanCity}`,
+      
+      // General location
+      `${service} near me`
     ];
 
     // Add business name keywords for brand monitoring
     keywords.push(
       businessName,
-      `${businessName} ${city}`,
+      `${businessName} ${cleanCity}`,
       `${businessName} reviews`
     );
 
-    return keywords.slice(0, 10); // Limit to 10 most relevant
+    // Filter out any keywords with numbers (zip codes) and return top 10
+    const cleanKeywords = keywords
+      .filter(kw => !/\d{5}/.test(kw)) // Remove any with zip codes
+      .slice(0, 10);
+      
+    console.log(`📍 Final keywords:`, cleanKeywords);
+    return cleanKeywords;
   }
 
   private analyzeKeywordOpportunities(
@@ -338,10 +355,36 @@ export class EnhancedAnalysisService {
     const parts = address.split(',');
     if (parts.length >= 1) {
       const lastPart = parts[parts.length - 1].trim();
-      // Extract state from "State ZIP" format
+      // Extract state from "State ZIP" format - remove ZIP code
       const stateParts = lastPart.split(' ');
       return stateParts[0] || '';
     }
     return '';
+  }
+
+  private getStateAbbreviation(state: string): string {
+    const stateMap: { [key: string]: string } = {
+      'South Carolina': 'SC', 'SC': 'SC',
+      'North Carolina': 'NC', 'NC': 'NC', 
+      'Georgia': 'GA', 'GA': 'GA',
+      'Florida': 'FL', 'FL': 'FL',
+      'Virginia': 'VA', 'VA': 'VA',
+      'Tennessee': 'TN', 'TN': 'TN',
+      'Alabama': 'AL', 'AL': 'AL',
+      'Kentucky': 'KY', 'KY': 'KY',
+      'West Virginia': 'WV', 'WV': 'WV',
+      'Maryland': 'MD', 'MD': 'MD',
+      'Delaware': 'DE', 'DE': 'DE',
+      'New Jersey': 'NJ', 'NJ': 'NJ',
+      'Pennsylvania': 'PA', 'PA': 'PA',
+      'New York': 'NY', 'NY': 'NY',
+      'Connecticut': 'CT', 'CT': 'CT',
+      'Rhode Island': 'RI', 'RI': 'RI',
+      'Massachusetts': 'MA', 'MA': 'MA',
+      'Vermont': 'VT', 'VT': 'VT',
+      'New Hampshire': 'NH', 'NH': 'NH',
+      'Maine': 'ME', 'ME': 'ME'
+    };
+    return stateMap[state] || state;
   }
 }
