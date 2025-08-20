@@ -61,8 +61,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentlyOpen: businessData.publicInfo?.currentlyOpen
       });
 
-      // Store business in database
-      const savedBusiness = await storage.createBusiness(validatedBusiness);
+      // Store business in database (optional)
+      let savedBusiness;
+      try {
+        savedBusiness = await storage.createBusiness(validatedBusiness);
+      } catch (error) {
+        console.log('Database not available, running analysis without storage');
+        savedBusiness = { id: Date.now(), ...validatedBusiness };
+      }
       
       // Set up Server-Sent Events
       res.writeHead(200, {
@@ -96,31 +102,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         sendProgress(90, "Generating growth opportunities...");
         
-        // Save analysis results
-        const analysisData = insertAnalysisSchema.parse({
-          targetBusinessId: savedBusiness.id,
-          marketPosition: analysisResult.marketPosition,
-          competitiveScore: analysisResult.competitiveScore,
-          performanceScore: analysisResult.performanceScore,
-          strengths: analysisResult.strengths,
-          opportunities: analysisResult.opportunities,
-          competitorData: analysisResult.competitors,
-          marketShare: analysisResult.marketAnalysis.marketShare.toString(),
-          averageCompetitorRating: analysisResult.marketAnalysis.averageRating.toString(),
-          totalCompetitors: analysisResult.marketAnalysis.totalCompetitors
-        });
-
-        const savedAnalysis = await storage.createAnalysis(analysisData);
+        // Save analysis results (optional)
+        let savedAnalysis;
+        try {
+          const analysisData = insertAnalysisSchema.parse({
+            targetBusinessId: savedBusiness.id,
+            marketPosition: analysisResult.marketPosition,
+            competitiveScore: analysisResult.competitiveScore,
+            performanceScore: analysisResult.performanceScore,
+            strengths: analysisResult.strengths,
+            opportunities: analysisResult.opportunities,
+            competitorData: analysisResult.competitors,
+            marketShare: analysisResult.marketAnalysis.marketShare.toString(),
+            averageCompetitorRating: analysisResult.marketAnalysis.averageRating.toString(),
+            totalCompetitors: analysisResult.marketAnalysis.totalCompetitors
+          });
+          savedAnalysis = await storage.createAnalysis(analysisData);
+        } catch (error) {
+          console.log('Database not available, returning analysis without storage');
+          savedAnalysis = { id: Date.now(), ...analysisResult };
+        }
         
         sendProgress(100, "Analysis complete!");
         
-        // Send final results
+        // Send final results with analysis data
         res.write(`data: ${JSON.stringify({
           progress: 100,
           message: "Analysis complete!",
           completed: true,
           analysisId: savedAnalysis.id,
-          businessId: savedBusiness.id
+          businessId: savedBusiness.id,
+          analysis: analysisResult,
+          business: businessData
         })}\n\n`);
         
         res.end();
@@ -142,26 +155,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get analysis results endpoint
+  // Get analysis results endpoint (optional - for database mode)
   app.get("/api/analysis/:analysisId", async (req, res) => {
     try {
       const { analysisId } = req.params;
-      const analysis = await storage.getAnalysisById(parseInt(analysisId));
       
-      if (!analysis) {
-        return res.status(404).json({
-          success: false,
-          error: 'Analysis not found'
+      try {
+        const analysis = await storage.getAnalysisById(parseInt(analysisId));
+        
+        if (!analysis) {
+          return res.status(404).json({
+            success: false,
+            error: 'Analysis not found'
+          });
+        }
+
+        const business = await storage.getBusinessById(analysis.targetBusinessId!);
+        
+        res.json({
+          success: true,
+          analysis,
+          business
+        });
+      } catch (dbError) {
+        // Database not available - return a message that analysis was completed via stream
+        res.json({
+          success: true,
+          message: 'Analysis completed via real-time stream. No database storage available.',
+          analysis: null,
+          business: null
         });
       }
-
-      const business = await storage.getBusinessById(analysis.targetBusinessId!);
-      
-      res.json({
-        success: true,
-        analysis,
-        business
-      });
     } catch (error) {
       console.error('Get analysis error:', error);
       res.status(500).json({
