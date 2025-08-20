@@ -43,40 +43,40 @@ export class DataForSeoService {
   async getSerpResults(keywords: string[], location: string = 'United States'): Promise<SerpResult[]> {
     try {
       console.log(`🔍 DataForSEO SERP: Analyzing ${keywords.length} keywords in "${location}"`);
+      console.log(`🎯 Keywords:`, keywords);
       
-      // Make separate requests for each keyword for better results
+      // Send all keywords in one efficient request
+      const tasks = keywords.slice(0, 10).map(keyword => ({
+        keyword: keyword,
+        location_name: location,
+        language_code: 'en',
+        device: 'desktop',
+        depth: 20
+      }));
+
+      const response = await axios.post(
+        `${this.baseUrl}/serp/google/organic/live/advanced`,
+        tasks,
+        {
+          headers: {
+            'Authorization': `Basic ${this.auth}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
       const allResults: SerpResult[] = [];
       
-      for (const keyword of keywords.slice(0, 5)) { // Limit to 5 keywords to avoid quota issues
-        console.log(`🎯 Searching SERP for: "${keyword}" in "${location}"`);
-        
-        const response = await axios.post(
-          `${this.baseUrl}/serp/google/organic/live/advanced`,
-          [{
-            keyword: keyword,
-            location_name: location,
-            language_code: 'en',
-            device: 'desktop',
-            depth: 20 // Reduced for faster results
-          }],
-          {
-            headers: {
-              'Authorization': `Basic ${this.auth}`,
-              'Content-Type': 'application/json'
-            }
+      if (response.data.tasks) {
+        response.data.tasks.forEach((task: any, index: number) => {
+          if (task.result?.[0]?.items) {
+            const keywordResults = this.parseSerpResults(task.result[0].items, keywords[index]);
+            allResults.push(...keywordResults);
+            console.log(`📊 Found ${keywordResults.length} SERP results for "${keywords[index]}"`);
+          } else {
+            console.log(`❌ No SERP results for "${keywords[index]}"`);
           }
-        );
-
-        if (response.data.tasks?.[0]?.result?.[0]?.items) {
-          const keywordResults = this.parseSerpResults(response.data.tasks[0].result[0].items, keyword);
-          allResults.push(...keywordResults);
-          console.log(`📊 Found ${keywordResults.length} SERP results for "${keyword}"`);
-        } else {
-          console.log(`❌ No SERP results for "${keyword}"`);
-        }
-        
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
+        });
       }
       
       return allResults;
