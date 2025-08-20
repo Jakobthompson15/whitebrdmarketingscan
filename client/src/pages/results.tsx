@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { MetricCard } from '@/components/metric-card';
 import { CompetitorTable } from '@/components/competitor-table';
 import { AIInsightsComponent } from '@/components/ai-insights';
-import { BarChart3, Star, MessageSquare, TrendingUp, Brain } from 'lucide-react';
+import { SeoInsights } from '@/components/seo-insights';
+import { BarChart3, Star, MessageSquare, TrendingUp, Brain, Search } from 'lucide-react';
 import { CompetitorAnalysis, BusinessSuggestion } from '@/lib/types';
 import logo from '@assets/Logo_1754797907914.png';
 
@@ -274,6 +275,24 @@ export function ResultsPage({ analysisId, businessId, onNewSearch }: ResultsPage
             </div>
           </div>
         </div>
+
+        {/* SEO Insights Section */}
+        {analysis.enhancedSeoData && (
+          <div className="mt-12">
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-black flex items-center gap-2">
+                  <Search className="h-6 w-6 text-[var(--color-data-orange)]" />
+                  SEO Keyword Analysis
+                </h2>
+                <div className="text-xs text-gray-500 px-3 py-1 bg-gray-100 rounded-full">
+                  Powered by DataForSEO
+                </div>
+              </div>
+              <SeoInsights seoData={analysis.enhancedSeoData} businessName={business.name} />
+            </div>
+          </div>
+        )}
 
         {/* AI Insights Section */}
         {analysis.aiInsights && (

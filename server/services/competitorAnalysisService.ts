@@ -1,5 +1,6 @@
 import { GooglePlacesService, BusinessSuggestion } from './googlePlacesService';
 import { AIAnalysisService, AIInsights } from './aiAnalysisService';
+import { EnhancedAnalysisService, EnhancedAnalysisResult } from './enhancedAnalysisService';
 
 export interface CompetitorAnalysisResult {
   marketPosition: number;
@@ -14,15 +15,18 @@ export interface CompetitorAnalysisResult {
     marketShare: number;
   };
   aiInsights?: AIInsights;
+  enhancedSeoData?: EnhancedAnalysisResult;
 }
 
 export class CompetitorAnalysisService {
   private googlePlaces: GooglePlacesService;
   private aiAnalysis: AIAnalysisService;
+  private enhancedAnalysis: EnhancedAnalysisService;
 
   constructor() {
     this.googlePlaces = new GooglePlacesService();
     this.aiAnalysis = new AIAnalysisService();
+    this.enhancedAnalysis = new EnhancedAnalysisService();
   }
 
   async analyzeCompetition(targetBusiness: BusinessSuggestion): Promise<CompetitorAnalysisResult> {
@@ -57,9 +61,23 @@ export class CompetitorAnalysisService {
 
       const aiInsights = await this.aiAnalysis.generateCompetitorInsights(targetBusiness, baseResult);
 
+      // Add enhanced SEO analysis if DataForSEO is configured
+      let enhancedData = null;
+      if (process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD) {
+        try {
+          enhancedData = await this.enhancedAnalysis.performEnhancedAnalysis(
+            targetBusiness,
+            competitors
+          );
+        } catch (error) {
+          console.log('Enhanced SEO analysis failed, continuing without it:', error);
+        }
+      }
+
       return {
         ...baseResult,
-        aiInsights
+        aiInsights,
+        enhancedSeoData: enhancedData
       };
     } catch (error) {
       console.error('Error analyzing competition:', error);

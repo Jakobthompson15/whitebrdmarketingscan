@@ -3,11 +3,13 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { GooglePlacesService } from "./services/googlePlacesService";
 import { CompetitorAnalysisService } from "./services/competitorAnalysisService";
+import { DataForSeoPromptService } from "./services/dataForSeoPromptService";
 import { insertBusinessSchema, insertAnalysisSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const googlePlaces = new GooglePlacesService();
   const competitorAnalysis = new CompetitorAnalysisService();
+  const dataForSeoPrompt = new DataForSeoPromptService();
 
   // Search businesses endpoint
   app.get("/api/search/businesses", async (req, res) => {
@@ -165,6 +167,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         error: 'Failed to retrieve analysis'
+      });
+    }
+  });
+
+  // DataForSEO prompt-based analysis endpoint
+  app.post("/api/analysis/prompt", async (req, res) => {
+    try {
+      const { prompt, businessId } = req.body;
+      
+      if (!prompt || !businessId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Prompt and businessId are required'
+        });
+      }
+      
+      const business = await storage.getBusinessById(businessId);
+      if (!business) {
+        return res.status(404).json({
+          success: false,
+          error: 'Business not found'
+        });
+      }
+      
+      // Convert database business to BusinessSuggestion format
+      const businessContext = {
+        placeId: business.placeId,
+        name: business.businessName,
+        address: business.address,
+        serviceType: business.serviceType,
+        rating: parseFloat(business.rating || '0'),
+        reviewCount: business.reviewCount || 0,
+        location: {
+          lat: parseFloat(business.latitude || '0'),
+          lng: parseFloat(business.longitude || '0')
+        },
+        publicInfo: {
+          phone: business.phone || undefined,
+          website: business.website || undefined,
+          hours: business.hours || undefined,
+          photos: business.photos || 0,
+          businessStatus: business.businessStatus || undefined,
+          currentlyOpen: business.currentlyOpen || undefined
+        }
+      };
+      
+      const results = await dataForSeoPrompt.executePrompt(prompt, {
+        business: businessContext
+      });
+      
+      res.json({
+        success: true,
+        results
+      });
+    } catch (error) {
+      console.error('Prompt analysis error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to execute prompt analysis'
+      });
+    }
+  });
+
+  // DataForSEO specific prompt types endpoint
+  app.post("/api/analysis/prompt/:promptType", async (req, res) => {
+    try {
+      const { promptType } = req.params;
+      const { businessId, additionalParams } = req.body;
+      
+      if (!businessId) {
+        return res.status(400).json({
+          success: false,
+          error: 'BusinessId is required'
+        });
+      }
+      
+      const business = await storage.getBusinessById(businessId);
+      if (!business) {
+        return res.status(404).json({
+          success: false,
+          error: 'Business not found'
+        });
+      }
+      
+      // Convert database business to BusinessSuggestion format
+      const businessContext = {
+        placeId: business.placeId,
+        name: business.businessName,
+        address: business.address,
+        serviceType: business.serviceType,
+        rating: parseFloat(business.rating || '0'),
+        reviewCount: business.reviewCount || 0,
+        location: {
+          lat: parseFloat(business.latitude || '0'),
+          lng: parseFloat(business.longitude || '0')
+        },
+        publicInfo: {
+          phone: business.phone || undefined,
+          website: business.website || undefined,
+          hours: business.hours || undefined,
+          photos: business.photos || 0,
+          businessStatus: business.businessStatus || undefined,
+          currentlyOpen: business.currentlyOpen || undefined
+        }
+      };
+      
+      const results = await dataForSeoPrompt.handleSpecificPrompt(
+        promptType,
+        businessContext,
+        additionalParams
+      );
+      
+      res.json({
+        success: true,
+        results
+      });
+    } catch (error) {
+      console.error('Specific prompt analysis error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to execute specific prompt analysis'
       });
     }
   });

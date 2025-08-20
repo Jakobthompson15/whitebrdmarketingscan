@@ -29,6 +29,28 @@ export interface AIInsights {
   riskFactors: string[];
 }
 
+export interface EnhancedSeoData {
+  keywordsNotRankingFor: Array<{
+    keyword: string;
+    searchVolume: number;
+    topCompetitor: string;
+    competitorPosition: number;
+  }>;
+  keywordsRankingFor: Array<{
+    keyword: string;
+    position: number;
+    searchVolume: number;
+    url?: string;
+  }>;
+  seoMetrics: {
+    domainAuthority?: number;
+    backlinks?: number;
+    referringDomains?: number;
+    organicKeywords?: number;
+    organicTraffic?: number;
+  };
+}
+
 export interface CompetitorAnalysis {
   id: number;
   targetBusinessId: number;
@@ -43,6 +65,7 @@ export interface CompetitorAnalysis {
   totalCompetitors: number;
   scanDate: string;
   aiInsights?: AIInsights;
+  enhancedSeoData?: EnhancedSeoData;
 }
 
 export interface ProgressUpdate {
