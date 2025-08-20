@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProgressTracker } from '@/components/progress-tracker';
-import { BusinessSuggestion, ProgressUpdate } from '@/lib/types';
+import { BusinessSuggestion, ProgressUpdate, CompetitorAnalysis } from '@/lib/types';
 import logo from '@assets/Logo_1754797907914.png';
 
 
 interface LoadingPageProps {
   selectedBusiness: BusinessSuggestion;
   onBack: () => void;
-  onComplete: (analysisId: number, businessId: number) => void;
+  onComplete: (analysisId: number, businessId: number, analysis?: CompetitorAnalysis, business?: BusinessSuggestion) => void;
 }
 
 export function LoadingPage({ selectedBusiness, onBack, onComplete }: LoadingPageProps) {
@@ -61,7 +61,10 @@ export function LoadingPage({ selectedBusiness, onBack, onComplete }: LoadingPag
               setUpdates(prev => [...prev, data]);
 
               if (data.completed && data.analysisId && data.businessId) {
-                onComplete(data.analysisId, data.businessId);
+                // Check if analysis data is included in the response
+                const analysis = (data as any).analysis as CompetitorAnalysis;
+                const business = (data as any).business as BusinessSuggestion;
+                onComplete(data.analysisId, data.businessId, analysis, business);
                 return;
               }
 

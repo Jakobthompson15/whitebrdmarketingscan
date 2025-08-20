@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LandingPage } from '@/pages/landing';
 import { LoadingPage } from '@/pages/loading';
 import { ResultsPage } from '@/pages/results';
-import { BusinessSuggestion } from '@/lib/types';
+import { BusinessSuggestion, CompetitorAnalysis } from '@/lib/types';
 
 type AppState = 'landing' | 'loading' | 'results';
 
@@ -15,15 +15,21 @@ function App() {
   const [selectedBusiness, setSelectedBusiness] = useState<BusinessSuggestion | null>(null);
   const [analysisId, setAnalysisId] = useState<number | null>(null);
   const [businessId, setBusinessId] = useState<number | null>(null);
+  const [analysisData, setAnalysisData] = useState<CompetitorAnalysis | null>(null);
 
   const handleBusinessSelect = (business: BusinessSuggestion) => {
     setSelectedBusiness(business);
     setCurrentPage('loading');
   };
 
-  const handleAnalysisComplete = (analysisId: number, businessId: number) => {
+  const handleAnalysisComplete = (analysisId: number, businessId: number, analysis?: CompetitorAnalysis, business?: BusinessSuggestion) => {
     setAnalysisId(analysisId);
     setBusinessId(businessId);
+    if (analysis && business) {
+      // Use data from stream
+      setAnalysisData(analysis);
+      setSelectedBusiness(business);
+    }
     setCurrentPage('results');
   };
 
@@ -32,6 +38,7 @@ function App() {
     setSelectedBusiness(null);
     setAnalysisId(null);
     setBusinessId(null);
+    setAnalysisData(null);
   };
 
   const handleBackToSearch = () => {
@@ -61,6 +68,8 @@ function App() {
             analysisId={analysisId}
             businessId={businessId}
             onNewSearch={handleNewSearch}
+            analysisData={analysisData}
+            businessData={selectedBusiness}
           />
         )}
       </TooltipProvider>

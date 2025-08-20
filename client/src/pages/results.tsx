@@ -13,18 +13,31 @@ interface ResultsPageProps {
   analysisId: number;
   businessId: number;
   onNewSearch: () => void;
+  analysisData?: CompetitorAnalysis | null;
+  businessData?: BusinessSuggestion | null;
 }
 
-export function ResultsPage({ analysisId, businessId, onNewSearch }: ResultsPageProps) {
+export function ResultsPage({ analysisId, businessId, onNewSearch, analysisData, businessData }: ResultsPageProps) {
+  // Use passed data if available, otherwise fetch from API
   const { data, isLoading, error } = useQuery({
     queryKey: ['/api/analysis', analysisId],
     queryFn: async () => {
+      if (analysisData && businessData) {
+        // Use passed data directly
+        return {
+          success: true,
+          analysis: analysisData,
+          business: businessData
+        };
+      }
+      // Fallback to API fetch
       const response = await fetch(`/api/analysis/${analysisId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch analysis results');
       }
       return response.json();
-    }
+    },
+    enabled: !!(analysisData && businessData) || true // Always enabled
   });
 
   if (isLoading) {
