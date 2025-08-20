@@ -54,16 +54,23 @@ export class EnhancedAnalysisService {
     competitors: BusinessSuggestion[]
   ): Promise<EnhancedAnalysisResult> {
     
+    console.log(`🏢 Business details:`, {
+      name: business.name,
+      address: business.address,
+      serviceType: business.serviceType
+    });
+    
     const domain = this.extractDomain(business.publicInfo?.website);
     const city = this.extractCity(business.address);
     const state = this.extractState(business.address);
     const keywords = this.generateLocalBusinessKeywords(business, city, state);
     
-    console.log(`🔍 Running SEO analysis for ${business.name} in ${city}, ${state}`);
-    console.log(`📍 Analyzing keywords:`, keywords.slice(0, 5));
+    console.log(`🔍 Running SEO analysis for ${business.name}`);
+    console.log(`📍 Parsed location: City="${city}", State="${state}"`);
+    console.log(`🎯 Generated keywords:`, keywords.slice(0, 5));
     
-    // Build proper location string for DataForSEO: "City,State,United States"
-    const location = city && state ? `${city},${this.getStateAbbreviation(state)},United States` : 'United States';
+    // Build proper location string for DataForSEO: "City,State,United States" (full state name required)
+    const location = city && state ? `${city},${this.getFullStateName(state)},United States` : 'United States';
     console.log(`🌍 Using DataForSEO location format: "${location}"`);
     
     const [
@@ -351,22 +358,46 @@ export class EnhancedAnalysisService {
     console.log(`📍 Parsing address: "${address}"`);
     
     // Handle different address formats:
-    // "123 Main St, Portland, OR 97201, USA"
-    // "123 Main St, Portland, OR, USA" 
-    // "Portland, OR 97201"
+    // "123 Main St, Lugoff, SC 29078, United States"
+    // "Lugoff, SC 29078, United States" 
+    // "Lugoff, SC, United States"
     const parts = address.split(',').map(p => p.trim());
     console.log(`📍 Address parts:`, parts);
     
-    if (parts.length >= 3) {
-      // Format: "Street, City, State ZIP, Country" or "Street, City, State, Country"
-      const cityPart = parts[parts.length - 3]; // Third from end is usually city
-      console.log(`📍 Extracted city: "${cityPart}"`);
-      return cityPart;
-    } else if (parts.length === 2) {
-      // Format: "City, State ZIP"
-      const cityPart = parts[0];
-      console.log(`📍 Extracted city (short format): "${cityPart}"`);
-      return cityPart;
+    // Look for the city which is typically before state/zip
+    // Work backwards from the end to find the city
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const part = parts[i];
+      
+      // Skip country (United States, USA)
+      if (part.toLowerCase().includes('united states') || part.toLowerCase() === 'usa') {
+        continue;
+      }
+      
+      // Skip state/zip combinations like "SC 29078" or just zip codes
+      if (/^[A-Z]{2}\s+\d{5}/.test(part) || /^\d{5}/.test(part)) {
+        continue;
+      }
+      
+      // Skip just state codes like "SC"
+      if (/^[A-Z]{2}$/.test(part)) {
+        continue;
+      }
+      
+      // If we've gone back far enough and this looks like a city (no numbers, reasonable length)
+      if (!/\d/.test(part) && part.length > 1 && part.length < 50) {
+        console.log(`📍 Extracted city: "${part}"`);
+        return part;
+      }
+    }
+    
+    // Fallback: try to get second-to-last part if it doesn't contain numbers
+    if (parts.length >= 2) {
+      const secondToLast = parts[parts.length - 2];
+      if (!/\d/.test(secondToLast) && !secondToLast.toLowerCase().includes('united')) {
+        console.log(`📍 Fallback city extraction: "${secondToLast}"`);
+        return secondToLast;
+      }
     }
     
     console.log(`📍 Could not extract city from address`);
@@ -378,29 +409,105 @@ export class EnhancedAnalysisService {
     
     const parts = address.split(',').map(p => p.trim());
     
-    if (parts.length >= 2) {
-      // Look for state in second-to-last or last part
-      let statePart = '';
+    // Look for state which typically comes after city and before country
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
       
-      if (parts.length >= 3) {
-        // Format: "Street, City, State ZIP, Country"
-        statePart = parts[parts.length - 2]; // Second from end
-      } else {
-        // Format: "City, State ZIP"
-        statePart = parts[parts.length - 1]; // Last part
+      // Skip country
+      if (part.toLowerCase().includes('united states') || part.toLowerCase() === 'usa') {
+        continue;
       }
       
-      // Extract state code from "OR 97201" or "Oregon 97201" format
-      const stateMatch = statePart.match(/^([A-Z]{2}|[A-Za-z\s]+)/);
-      if (stateMatch) {
-        const state = stateMatch[1].trim();
-        console.log(`🏛️ Extracted state: "${state}"`);
-        return state;
+      // Look for state abbreviation + zip code pattern like "SC 29078"
+      const stateZipMatch = part.match(/^([A-Z]{2})\s+\d{5}/);
+      if (stateZipMatch) {
+        const stateAbbr = stateZipMatch[1];
+        console.log(`🏛️ Extracted state abbreviation: "${stateAbbr}"`);
+        return stateAbbr;
+      }
+      
+      // Look for just state abbreviation like "SC"
+      if (/^[A-Z]{2}$/.test(part)) {
+        console.log(`🏛️ Extracted state abbreviation: "${part}"`);
+        return part;
+      }
+      
+      // Look for full state names like "South Carolina"
+      const fullStateNames = [
+        'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 
+        'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 
+        'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 
+        'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 
+        'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 
+        'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 
+        'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 
+        'Wisconsin', 'Wyoming'
+      ];
+      
+      if (fullStateNames.some(state => part.toLowerCase() === state.toLowerCase())) {
+        console.log(`🏛️ Extracted full state name: "${part}"`);
+        return part;
       }
     }
     
     console.log(`🏛️ Could not extract state from address`);
     return '';
+  }
+
+  private getFullStateName(state: string): string {
+    const stateMap: { [key: string]: string } = {
+      'SC': 'South Carolina', 'South Carolina': 'South Carolina',
+      'NC': 'North Carolina', 'North Carolina': 'North Carolina', 
+      'GA': 'Georgia', 'Georgia': 'Georgia',
+      'FL': 'Florida', 'Florida': 'Florida',
+      'VA': 'Virginia', 'Virginia': 'Virginia',
+      'TN': 'Tennessee', 'Tennessee': 'Tennessee',
+      'AL': 'Alabama', 'Alabama': 'Alabama',
+      'KY': 'Kentucky', 'Kentucky': 'Kentucky',
+      'WV': 'West Virginia', 'West Virginia': 'West Virginia',
+      'MD': 'Maryland', 'Maryland': 'Maryland',
+      'DE': 'Delaware', 'Delaware': 'Delaware',
+      'NJ': 'New Jersey', 'New Jersey': 'New Jersey',
+      'PA': 'Pennsylvania', 'Pennsylvania': 'Pennsylvania',
+      'NY': 'New York', 'New York': 'New York',
+      'CT': 'Connecticut', 'Connecticut': 'Connecticut',
+      'RI': 'Rhode Island', 'Rhode Island': 'Rhode Island',
+      'MA': 'Massachusetts', 'Massachusetts': 'Massachusetts',
+      'VT': 'Vermont', 'Vermont': 'Vermont',
+      'NH': 'New Hampshire', 'New Hampshire': 'New Hampshire',
+      'ME': 'Maine', 'Maine': 'Maine',
+      'OR': 'Oregon', 'Oregon': 'Oregon',
+      'WA': 'Washington', 'Washington': 'Washington',
+      'CA': 'California', 'California': 'California',
+      'NV': 'Nevada', 'Nevada': 'Nevada',
+      'ID': 'Idaho', 'Idaho': 'Idaho',
+      'MT': 'Montana', 'Montana': 'Montana',
+      'WY': 'Wyoming', 'Wyoming': 'Wyoming',
+      'CO': 'Colorado', 'Colorado': 'Colorado',
+      'UT': 'Utah', 'Utah': 'Utah',
+      'AZ': 'Arizona', 'Arizona': 'Arizona',
+      'NM': 'New Mexico', 'New Mexico': 'New Mexico',
+      'TX': 'Texas', 'Texas': 'Texas',
+      'OH': 'Ohio', 'Ohio': 'Ohio',
+      'IN': 'Indiana', 'Indiana': 'Indiana',
+      'IL': 'Illinois', 'Illinois': 'Illinois',
+      'MI': 'Michigan', 'Michigan': 'Michigan',
+      'WI': 'Wisconsin', 'Wisconsin': 'Wisconsin',
+      'MN': 'Minnesota', 'Minnesota': 'Minnesota',
+      'IA': 'Iowa', 'Iowa': 'Iowa',
+      'MO': 'Missouri', 'Missouri': 'Missouri',
+      'AR': 'Arkansas', 'Arkansas': 'Arkansas',
+      'LA': 'Louisiana', 'Louisiana': 'Louisiana',
+      'MS': 'Mississippi', 'Mississippi': 'Mississippi',
+      'OK': 'Oklahoma', 'Oklahoma': 'Oklahoma',
+      'KS': 'Kansas', 'Kansas': 'Kansas',
+      'NE': 'Nebraska', 'Nebraska': 'Nebraska',
+      'SD': 'South Dakota', 'South Dakota': 'South Dakota',
+      'ND': 'North Dakota', 'North Dakota': 'North Dakota',
+      'AK': 'Alaska', 'Alaska': 'Alaska',
+      'HI': 'Hawaii', 'Hawaii': 'Hawaii'
+    };
+    return stateMap[state] || state;
   }
 
   private getStateAbbreviation(state: string): string {
@@ -436,7 +543,25 @@ export class EnhancedAnalysisService {
       'Utah': 'UT', 'UT': 'UT',
       'Arizona': 'AZ', 'AZ': 'AZ',
       'New Mexico': 'NM', 'NM': 'NM',
-      'Texas': 'TX', 'TX': 'TX'
+      'Texas': 'TX', 'TX': 'TX',
+      'Ohio': 'OH', 'OH': 'OH',
+      'Indiana': 'IN', 'IN': 'IN',
+      'Illinois': 'IL', 'IL': 'IL',
+      'Michigan': 'MI', 'MI': 'MI',
+      'Wisconsin': 'WI', 'WI': 'WI',
+      'Minnesota': 'MN', 'MN': 'MN',
+      'Iowa': 'IA', 'IA': 'IA',
+      'Missouri': 'MO', 'MO': 'MO',
+      'Arkansas': 'AR', 'AR': 'AR',
+      'Louisiana': 'LA', 'LA': 'LA',
+      'Mississippi': 'MS', 'MS': 'MS',
+      'Oklahoma': 'OK', 'OK': 'OK',
+      'Kansas': 'KS', 'KS': 'KS',
+      'Nebraska': 'NE', 'NE': 'NE',
+      'South Dakota': 'SD', 'SD': 'SD',
+      'North Dakota': 'ND', 'ND': 'ND',
+      'Alaska': 'AK', 'AK': 'AK',
+      'Hawaii': 'HI', 'HI': 'HI'
     };
     return stateMap[state] || state;
   }
