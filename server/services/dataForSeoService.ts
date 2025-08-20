@@ -42,15 +42,16 @@ export class DataForSeoService {
 
   async getSerpResults(keywords: string[], location: string = 'United States'): Promise<SerpResult[]> {
     try {
-      console.log(`🔍 DataForSEO SERP: Analyzing ${keywords.length} keywords in "${location}"`);
+      console.log(`🔍 DataForSEO SERP: Analyzing ${keywords.length} keywords`);
+      console.log(`📍 Location passed: "${location}"`);
       console.log(`🎯 Keywords:`, keywords);
       
-      // Send all keywords in one efficient request
+      // Send all keywords in one efficient request with exact location format
       const tasks = keywords.slice(0, 10).map(keyword => ({
         keyword: keyword,
-        location_name: location,
+        location_name: location, // Should be "City,State,United States" format
         language_code: 'en',
-        device: 'desktop',
+        device: 'mobile',
         depth: 20
       }));
 
