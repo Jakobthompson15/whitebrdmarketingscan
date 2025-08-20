@@ -238,7 +238,7 @@ export function ResultsPage({ analysisId, businessId, onNewSearch, analysisData,
                 {analysis.opportunities?.slice(0, 3).map((opportunity, index) => (
                   <div key={index} className="bg-[var(--color-data-orange-fade)] border border-[var(--color-data-orange)]/20 rounded-lg p-4">
                     <h4 className="font-bold text-black text-sm mb-2">Action Item</h4>
-                    <p className="text-gray-600 text-xs">{opportunity}</p>
+                    <p className="text-white text-xs">{opportunity}</p>
                   </div>
                 )) || (
                   <p className="text-sm text-gray-500">No specific action items identified</p>
@@ -290,22 +290,33 @@ export function ResultsPage({ analysisId, businessId, onNewSearch, analysisData,
         </div>
 
         {/* SEO Insights Section */}
-        {analysis.enhancedSeoData && (
-          <div className="mt-12">
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-black flex items-center gap-2">
-                  <Search className="h-6 w-6 text-[var(--color-data-orange)]" />
-                  SEO Keyword Analysis
-                </h2>
-                <div className="text-xs text-gray-500 px-3 py-1 bg-gray-100 rounded-full">
-                  Powered by DataForSEO
-                </div>
+        <div className="mt-12">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-black flex items-center gap-2">
+                <Search className="h-6 w-6 text-[var(--color-data-orange)]" />
+                SEO Keyword Analysis
+              </h2>
+              <div className="text-xs text-gray-500 px-3 py-1 bg-gray-100 rounded-full">
+                Powered by DataForSEO
               </div>
-              <SeoInsights seoData={analysis.enhancedSeoData} businessName={business.name} />
             </div>
+            {analysis.enhancedSeoData ? (
+              <SeoInsights seoData={analysis.enhancedSeoData} businessName={business.name} />
+            ) : (
+              <div className="text-center py-8">
+                <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">SEO Analysis Not Available</h3>
+                <p className="text-gray-500 mb-4">
+                  DataForSEO credentials not configured or analysis failed.
+                </p>
+                <p className="text-sm text-gray-400">
+                  Configure DataForSEO API credentials to see keyword rankings, competitor analysis, and SEO opportunities.
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* AI Insights Section */}
         {analysis.aiInsights && (

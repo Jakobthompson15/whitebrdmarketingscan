@@ -63,15 +63,24 @@ export class CompetitorAnalysisService {
 
       // Add enhanced SEO analysis if DataForSEO is configured
       let enhancedData = null;
+      console.log(`🔐 DataForSEO Credentials Check:`);
+      console.log(`  - Login: ${process.env.DATAFORSEO_LOGIN ? 'SET' : 'NOT SET'}`);
+      console.log(`  - Password: ${process.env.DATAFORSEO_PASSWORD ? 'SET' : 'NOT SET'}`);
+      
       if (process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD) {
+        console.log('🚀 Running DataForSEO enhanced analysis...');
         try {
           enhancedData = await this.enhancedAnalysis.performEnhancedAnalysis(
             targetBusiness,
             competitors
           );
+          console.log('✅ Enhanced SEO analysis completed successfully');
+          console.log('📊 Enhanced data:', enhancedData ? 'DATA AVAILABLE' : 'NO DATA');
         } catch (error) {
-          console.log('Enhanced SEO analysis failed, continuing without it:', error);
+          console.log('❌ Enhanced SEO analysis failed, continuing without it:', error);
         }
+      } else {
+        console.log('⚠️ DataForSEO credentials not configured, skipping enhanced analysis');
       }
 
       return {
@@ -90,12 +99,18 @@ export class CompetitorAnalysisService {
     const locationQuery = this.extractLocationFromAddress(targetBusiness.address);
     const searchQuery = `${targetBusiness.serviceType} ${locationQuery}`;
     
+    console.log(`🔍 Searching for competitors with query: "${searchQuery}"`);
     const allBusinesses = await this.googlePlaces.searchBusinesses(searchQuery);
+    console.log(`📊 Found ${allBusinesses.length} total businesses`);
     
     // Filter out the target business and return competitors
-    return allBusinesses
-      .filter(business => business.placeId !== targetBusiness.placeId)
-      .slice(0, 10); // Limit to top 10 competitors
+    const competitors = allBusinesses
+      .filter(business => business.placeId !== targetBusiness.placeId);
+      
+    console.log(`🏢 Found ${competitors.length} competitors after filtering target business`);
+    console.log(`🎯 Target business placeId: ${targetBusiness.placeId}`);
+    
+    return competitors.slice(0, 10); // Limit to top 10 competitors
   }
 
   private extractLocationFromAddress(address: string): string {
