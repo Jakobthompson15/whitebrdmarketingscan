@@ -62,9 +62,9 @@ export class EnhancedAnalysisService {
     console.log(`🔍 Running SEO analysis for ${business.name} in ${city}, ${state}`);
     console.log(`📍 Analyzing keywords:`, keywords.slice(0, 5));
     
-    // Build proper location string for DataForSEO
-    const location = city && state ? `${city}, ${this.getStateAbbreviation(state)}` : 'United States';
-    console.log(`🌍 Using location: "${location}" for DataForSEO queries`);
+    // Build proper location string for DataForSEO: "City, State, United States"
+    const location = city && state ? `${city}, ${this.getStateAbbreviation(state)}, United States` : 'United States';
+    console.log(`🌍 Using DataForSEO location format: "${location}"`);
     
     const [
       serpResults,
