@@ -42,28 +42,44 @@ export class DataForSeoService {
 
   async getSerpResults(keywords: string[], location: string = 'United States'): Promise<SerpResult[]> {
     try {
-      const response = await axios.post(
-        `${this.baseUrl}/serp/google/organic/live/advanced`,
-        [{
-          keyword: keywords.join(' '),
-          location_name: location,
-          language_code: 'en',
-          device: 'desktop',
-          depth: 100
-        }],
-        {
-          headers: {
-            'Authorization': `Basic ${this.auth}`,
-            'Content-Type': 'application/json'
+      console.log(`🔍 DataForSEO SERP: Analyzing ${keywords.length} keywords in "${location}"`);
+      
+      // Make separate requests for each keyword for better results
+      const allResults: SerpResult[] = [];
+      
+      for (const keyword of keywords.slice(0, 5)) { // Limit to 5 keywords to avoid quota issues
+        console.log(`🎯 Searching SERP for: "${keyword}" in "${location}"`);
+        
+        const response = await axios.post(
+          `${this.baseUrl}/serp/google/organic/live/advanced`,
+          [{
+            keyword: keyword,
+            location_name: location,
+            language_code: 'en',
+            device: 'desktop',
+            depth: 20 // Reduced for faster results
+          }],
+          {
+            headers: {
+              'Authorization': `Basic ${this.auth}`,
+              'Content-Type': 'application/json'
+            }
           }
-        }
-      );
+        );
 
-      if (response.data.tasks?.[0]?.result?.[0]?.items) {
-        return this.parseSerpResults(response.data.tasks[0].result[0].items);
+        if (response.data.tasks?.[0]?.result?.[0]?.items) {
+          const keywordResults = this.parseSerpResults(response.data.tasks[0].result[0].items, keyword);
+          allResults.push(...keywordResults);
+          console.log(`📊 Found ${keywordResults.length} SERP results for "${keyword}"`);
+        } else {
+          console.log(`❌ No SERP results for "${keyword}"`);
+        }
+        
+        // Small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
       
-      return [];
+      return allResults;
     } catch (error) {
       console.error('DataForSEO SERP error:', error);
       return [];
@@ -72,10 +88,12 @@ export class DataForSeoService {
 
   async getKeywordData(keywords: string[]): Promise<KeywordData[]> {
     try {
+      console.log(`📊 DataForSEO Keywords: Getting search volume for ${keywords.length} keywords`);
+      
       const response = await axios.post(
         `${this.baseUrl}/keywords_data/google_ads/search_volume/live`,
         [{
-          keywords: keywords,
+          keywords: keywords.slice(0, 10), // Limit to avoid quota issues
           location_name: 'United States',
           language_code: 'en'
         }],
@@ -88,9 +106,12 @@ export class DataForSeoService {
       );
 
       if (response.data.tasks?.[0]?.result) {
-        return this.parseKeywordData(response.data.tasks[0].result);
+        const keywordData = this.parseKeywordData(response.data.tasks[0].result);
+        console.log(`📊 Retrieved keyword data for ${keywordData.length} keywords`);
+        return keywordData;
       }
       
+      console.log(`❌ No keyword data returned from DataForSEO`);
       return [];
     } catch (error) {
       console.error('DataForSEO Keywords error:', error);
@@ -182,12 +203,12 @@ export class DataForSeoService {
     }
   }
 
-  private parseSerpResults(items: any[]): SerpResult[] {
+  private parseSerpResults(items: any[], keyword?: string): SerpResult[] {
     return items
       .filter(item => item.type === 'organic')
-      .map(item => ({
-        keyword: item.keyword || '',
-        position: item.rank_group || 0,
+      .map((item, index) => ({
+        keyword: keyword || item.keyword || '',
+        position: item.rank_group || (index + 1),
         url: item.url || '',
         title: item.title || '',
         description: item.description || '',

@@ -62,6 +62,10 @@ export class EnhancedAnalysisService {
     console.log(`🔍 Running SEO analysis for ${business.name} in ${city}, ${state}`);
     console.log(`📍 Analyzing keywords:`, keywords.slice(0, 5));
     
+    // Build proper location string for DataForSEO
+    const location = city && state ? `${city}, ${this.getStateAbbreviation(state)}` : 'United States';
+    console.log(`🌍 Using location: "${location}" for DataForSEO queries`);
+    
     const [
       serpResults,
       keywordData,
@@ -69,11 +73,11 @@ export class EnhancedAnalysisService {
       backlinkData,
       competitorDomains
     ] = await Promise.all([
-      this.dataForSeo.getSerpResults(keywords, `${city}, ${state}`),
+      this.dataForSeo.getSerpResults(keywords, location),
       this.dataForSeo.getKeywordData(keywords),
       this.dataForSeo.getLocalPackResults(
         `${business.serviceType} ${city}`,
-        `${city}, ${state}`
+        location
       ),
       domain ? this.dataForSeo.getBacklinkData(domain) : null,
       domain ? this.dataForSeo.getCompetitorDomains(domain) : null
