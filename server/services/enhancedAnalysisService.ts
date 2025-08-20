@@ -344,21 +344,58 @@ export class EnhancedAnalysisService {
   }
 
   private extractCity(address: string): string {
-    const parts = address.split(',');
-    if (parts.length >= 2) {
-      return parts[parts.length - 2].trim();
+    console.log(`📍 Parsing address: "${address}"`);
+    
+    // Handle different address formats:
+    // "123 Main St, Portland, OR 97201, USA"
+    // "123 Main St, Portland, OR, USA" 
+    // "Portland, OR 97201"
+    const parts = address.split(',').map(p => p.trim());
+    console.log(`📍 Address parts:`, parts);
+    
+    if (parts.length >= 3) {
+      // Format: "Street, City, State ZIP, Country" or "Street, City, State, Country"
+      const cityPart = parts[parts.length - 3]; // Third from end is usually city
+      console.log(`📍 Extracted city: "${cityPart}"`);
+      return cityPart;
+    } else if (parts.length === 2) {
+      // Format: "City, State ZIP"
+      const cityPart = parts[0];
+      console.log(`📍 Extracted city (short format): "${cityPart}"`);
+      return cityPart;
     }
+    
+    console.log(`📍 Could not extract city from address`);
     return '';
   }
 
   private extractState(address: string): string {
-    const parts = address.split(',');
-    if (parts.length >= 1) {
-      const lastPart = parts[parts.length - 1].trim();
-      // Extract state from "State ZIP" format - remove ZIP code
-      const stateParts = lastPart.split(' ');
-      return stateParts[0] || '';
+    console.log(`🏛️ Parsing state from: "${address}"`);
+    
+    const parts = address.split(',').map(p => p.trim());
+    
+    if (parts.length >= 2) {
+      // Look for state in second-to-last or last part
+      let statePart = '';
+      
+      if (parts.length >= 3) {
+        // Format: "Street, City, State ZIP, Country"
+        statePart = parts[parts.length - 2]; // Second from end
+      } else {
+        // Format: "City, State ZIP"
+        statePart = parts[parts.length - 1]; // Last part
+      }
+      
+      // Extract state code from "OR 97201" or "Oregon 97201" format
+      const stateMatch = statePart.match(/^([A-Z]{2}|[A-Za-z\s]+)/);
+      if (stateMatch) {
+        const state = stateMatch[1].trim();
+        console.log(`🏛️ Extracted state: "${state}"`);
+        return state;
+      }
     }
+    
+    console.log(`🏛️ Could not extract state from address`);
     return '';
   }
 
@@ -383,7 +420,19 @@ export class EnhancedAnalysisService {
       'Massachusetts': 'MA', 'MA': 'MA',
       'Vermont': 'VT', 'VT': 'VT',
       'New Hampshire': 'NH', 'NH': 'NH',
-      'Maine': 'ME', 'ME': 'ME'
+      'Maine': 'ME', 'ME': 'ME',
+      'Oregon': 'OR', 'OR': 'OR',
+      'Washington': 'WA', 'WA': 'WA',
+      'California': 'CA', 'CA': 'CA',
+      'Nevada': 'NV', 'NV': 'NV',
+      'Idaho': 'ID', 'ID': 'ID',
+      'Montana': 'MT', 'MT': 'MT',
+      'Wyoming': 'WY', 'WY': 'WY',
+      'Colorado': 'CO', 'CO': 'CO',
+      'Utah': 'UT', 'UT': 'UT',
+      'Arizona': 'AZ', 'AZ': 'AZ',
+      'New Mexico': 'NM', 'NM': 'NM',
+      'Texas': 'TX', 'TX': 'TX'
     };
     return stateMap[state] || state;
   }

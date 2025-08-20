@@ -114,11 +114,24 @@ export class CompetitorAnalysisService {
   }
 
   private extractLocationFromAddress(address: string): string {
-    // Extract city and state from address
-    const parts = address.split(',');
-    if (parts.length >= 2) {
-      return parts[parts.length - 2].trim(); // Usually the city
+    console.log(`🏠 Extracting location from address: "${address}"`);
+    
+    // Handle different address formats and extract city
+    const parts = address.split(',').map(p => p.trim());
+    
+    if (parts.length >= 3) {
+      // Format: "Street, City, State ZIP, Country" 
+      const city = parts[parts.length - 3]; // Third from end is usually city
+      console.log(`🏠 Extracted location: "${city}"`);
+      return city;
+    } else if (parts.length === 2) {
+      // Format: "City, State ZIP"
+      const city = parts[0];
+      console.log(`🏠 Extracted location (short format): "${city}"`);
+      return city;
     }
+    
+    console.log(`🏠 Could not extract proper location, using full address`);
     return address;
   }
 
