@@ -87,16 +87,19 @@ export class DataForSeoService {
     }
   }
 
-  async getKeywordData(keywords: string[]): Promise<KeywordData[]> {
+  async getKeywordData(keywords: string[], location?: string): Promise<KeywordData[]> {
     try {
       console.log(`📊 DataForSEO Keywords: Getting search volume for ${keywords.length} keywords`);
+      console.log(`📍 Using location: ${location || 'United States'}`);
       
       const response = await axios.post(
-        `${this.baseUrl}/keywords_data/google_ads/search_volume/live`,
+        `${this.baseUrl}/keywords_data/google_ads/keywords_for_keywords/live`,
         [{
           keywords: keywords.slice(0, 10), // Limit to avoid quota issues
-          location_name: 'United States',
-          language_code: 'en'
+          location_name: location || 'United States',
+          language_code: 'en',
+          sort_by: 'search_volume',
+          limit: 50
         }],
         {
           headers: {
@@ -179,7 +182,7 @@ export class DataForSeoService {
   async getLocalPackResults(keyword: string, location: string): Promise<any[]> {
     try {
       const response = await axios.post(
-        `${this.baseUrl}/serp/google/local_pack/live/regular`,
+        `${this.baseUrl}/serp/google/organic/task_post`,
         [{
           keyword: keyword,
           location_name: location,
@@ -226,5 +229,19 @@ export class DataForSeoService {
       cpc: result.cpc || 0,
       trend: result.monthly_searches || []
     }));
+  }
+
+  private parseLocalFinderData(items: any[], keyword: string): KeywordData[] {
+    // For local finder, we create keyword data based on the businesses found
+    // This gives us an estimate of search volume based on local competition
+    const estimatedVolume = Math.max(items.length * 100, 500); // Rough estimate based on local results
+    
+    return [{
+      keyword: keyword,
+      searchVolume: estimatedVolume,
+      competition: Math.min(items.length / 10, 1), // Competition based on number of results
+      cpc: 2.5, // Average local service CPC
+      trend: []
+    }];
   }
 }
