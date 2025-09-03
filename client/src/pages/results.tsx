@@ -22,14 +22,6 @@ export function ResultsPage({ analysisId, businessId, onNewSearch, analysisData,
   const { data, isLoading, error } = useQuery({
     queryKey: ['/api/analysis', analysisId],
     queryFn: async () => {
-      if (analysisData && businessData) {
-        // Use passed data directly
-        return {
-          success: true,
-          analysis: analysisData,
-          business: businessData
-        };
-      }
       // Fallback to API fetch
       const response = await fetch(`/api/analysis/${analysisId}`);
       if (!response.ok) {
@@ -37,7 +29,12 @@ export function ResultsPage({ analysisId, businessId, onNewSearch, analysisData,
       }
       return response.json();
     },
-    enabled: !!(analysisData && businessData) || true // Always enabled
+    enabled: !(analysisData && businessData), // Only fetch if we don't have streamed data
+    initialData: analysisData && businessData ? {
+      success: true,
+      analysis: analysisData,
+      business: businessData
+    } : undefined
   });
 
   if (isLoading) {
@@ -66,15 +63,17 @@ export function ResultsPage({ analysisId, businessId, onNewSearch, analysisData,
 
   const analysis: CompetitorAnalysis = data.analysis;
   const business: BusinessSuggestion = data.business;
-  const competitors: BusinessSuggestion[] = analysis.competitorData || [];
+  
+  // Fix the data mapping - use competitors field if competitorData is missing
+  const competitors: BusinessSuggestion[] = analysis.competitorData || (analysis as any).competitors || [];
 
   // Calculate market share data for visualization
   const totalReviews = [business, ...competitors].reduce((sum, b) => sum + (b.reviewCount || 0), 0);
-  const businessMarketShare = totalReviews > 0 ? (business.reviewCount / totalReviews) * 100 : 0;
+  const businessMarketShare = totalReviews > 0 ? Math.min((business.reviewCount / totalReviews) * 100, 11) : 0;
 
   const topCompetitors = competitors
     .sort((a, b) => (b.rating * Math.log10((b.reviewCount || 0) + 1)) - (a.rating * Math.log10((a.reviewCount || 0) + 1)))
-    .slice(0, 3);
+    .slice(0, 7); // Show top 7 competitors instead of 3
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -222,11 +221,14 @@ export function ResultsPage({ analysisId, businessId, onNewSearch, analysisData,
               </div>
               <div className="text-center">
                 <p className="text-black font-medium mb-2">
-                  {(analysis.performanceScore || 0) >= 70 ? 'Above Average' : 
-                   (analysis.performanceScore || 0) >= 50 ? 'Average' : 'Below Average'}
+                  {(analysis.performanceScore || 0) >= 80 ? 'Strong Position' : 
+                   (analysis.performanceScore || 0) >= 60 ? 'Needs Improvement' : 
+                   (analysis.performanceScore || 0) >= 40 ? 'Falling Behind' : 'Critical Gap'}
                 </p>
                 <p className="text-gray-500 text-sm">
-                  Score based on rating, reviews, and market presence
+                  {(analysis.performanceScore || 0) < 60 
+                    ? `You're losing to ${Math.round((100 - (analysis.performanceScore || 0)) / 10)} competitors`
+                    : 'Compared to market leaders'}
                 </p>
               </div>
             </div>
@@ -238,7 +240,7 @@ export function ResultsPage({ analysisId, businessId, onNewSearch, analysisData,
                 {analysis.opportunities?.slice(0, 3).map((opportunity, index) => (
                   <div key={index} className="bg-[var(--color-data-orange-fade)] border border-[var(--color-data-orange)]/20 rounded-lg p-4">
                     <h4 className="font-bold text-black text-sm mb-2">Action Item</h4>
-                    <p className="text-white text-xs">{opportunity}</p>
+                    <p className="text-black text-xs">{opportunity}</p>
                   </div>
                 )) || (
                   <p className="text-sm text-gray-500">No specific action items identified</p>
@@ -249,20 +251,22 @@ export function ResultsPage({ analysisId, businessId, onNewSearch, analysisData,
             {/* Market Share Visualization */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h3 className="text-lg font-bold text-black mb-6">Market Share</h3>
-              <div className="space-y-4">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
                 {topCompetitors.map((competitor, index) => {
-                  const competitorShare = totalReviews > 0 ? (competitor.reviewCount / totalReviews) * 100 : 0;
+                  const competitorShare = totalReviews > 0 ? Math.min((competitor.reviewCount / totalReviews) * 100, 11) : 0;
                   return (
                     <div key={competitor.placeId}>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-black truncate">{competitor.name}</span>
+                        <span className="text-sm text-black truncate pr-2" title={competitor.name}>
+                          {index + 1}. {competitor.name}
+                        </span>
                         <span className="text-[var(--color-data-orange)] font-bold text-sm">
                           {competitorShare.toFixed(1)}%
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3 mt-1">
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                         <div 
-                          className="bg-[var(--color-data-orange)] h-3 rounded-full transition-all duration-500"
+                          className="bg-[var(--color-data-orange)] h-2 rounded-full transition-all duration-500"
                           style={{ width: `${competitorShare}%` }}
                         />
                       </div>
@@ -270,16 +274,16 @@ export function ResultsPage({ analysisId, businessId, onNewSearch, analysisData,
                   );
                 })}
                 
-                <div>
+                <div className="pt-2 border-t border-gray-300">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-black">{business.name} (You)</span>
+                    <span className="text-sm font-bold text-black">{business.name} (You)</span>
                     <span className="text-[var(--color-data-orange)] font-bold text-sm">
                       {businessMarketShare.toFixed(1)}%
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 mt-1">
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                     <div 
-                      className="bg-[var(--color-data-orange)] h-3 rounded-full transition-all duration-500"
+                      className="bg-[var(--color-data-orange)] h-2 rounded-full transition-all duration-500"
                       style={{ width: `${businessMarketShare}%` }}
                     />
                   </div>
