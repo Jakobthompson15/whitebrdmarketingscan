@@ -39,7 +39,7 @@ export class CompetitorAnalysisService {
       
       // Calculate competitive metrics
       const competitiveScore = this.calculateCompetitiveScore(targetBusiness, competitors);
-      const performanceScore = this.calculatePerformanceScore(targetBusiness);
+      const performanceScore = this.calculatePerformanceScore(targetBusiness, competitors);
       
       // Identify strengths and opportunities
       const strengths = this.identifyStrengths(targetBusiness, competitors);
@@ -97,11 +97,38 @@ export class CompetitorAnalysisService {
   private async findCompetitors(targetBusiness: BusinessSuggestion): Promise<BusinessSuggestion[]> {
     // Extract location info for competitor search
     const locationQuery = this.extractLocationFromAddress(targetBusiness.address);
-    const searchQuery = `${targetBusiness.serviceType} ${locationQuery}`;
     
-    console.log(`🔍 Searching for competitors with query: "${searchQuery}"`);
-    const allBusinesses = await this.googlePlaces.searchBusinesses(searchQuery);
-    console.log(`📊 Found ${allBusinesses.length} total businesses`);
+    // Create multiple search queries for better results
+    const searchQueries = [
+      `${targetBusiness.serviceType} near ${locationQuery}`,
+      `${targetBusiness.serviceType} services ${locationQuery}`,
+      `${targetBusiness.serviceType} contractors ${locationQuery}`,
+      `${targetBusiness.serviceType} companies in ${locationQuery}`
+    ];
+    
+    console.log(`🔍 Searching for competitors with multiple queries`);
+    
+    let allBusinesses: BusinessSuggestion[] = [];
+    const seenPlaceIds = new Set<string>();
+    
+    // Try multiple search queries to get more results
+    for (const query of searchQueries) {
+      console.log(`🔎 Trying query: "${query}"`);
+      const results = await this.googlePlaces.searchBusinesses(query);
+      
+      // De-duplicate by placeId
+      for (const business of results) {
+        if (!seenPlaceIds.has(business.placeId)) {
+          seenPlaceIds.add(business.placeId);
+          allBusinesses.push(business);
+        }
+      }
+      
+      // If we have enough competitors, stop searching
+      if (allBusinesses.length >= 15) break;
+    }
+    
+    console.log(`📊 Found ${allBusinesses.length} total unique businesses`);
     
     // Filter out the target business and return competitors
     const competitors = allBusinesses
@@ -116,23 +143,48 @@ export class CompetitorAnalysisService {
   private extractLocationFromAddress(address: string): string {
     console.log(`🏠 Extracting location from address: "${address}"`);
     
-    // Handle different address formats and extract city
+    // Handle different address formats and extract city and state
     const parts = address.split(',').map(p => p.trim());
     
-    if (parts.length >= 3) {
-      // Format: "Street, City, State ZIP, Country" 
-      const city = parts[parts.length - 3]; // Third from end is usually city
-      console.log(`🏠 Extracted location: "${city}"`);
-      return city;
-    } else if (parts.length === 2) {
-      // Format: "City, State ZIP"
-      const city = parts[0];
-      console.log(`🏠 Extracted location (short format): "${city}"`);
-      return city;
+    let city = '';
+    let state = '';
+    let zipCode = '';
+    
+    // Try to extract state and zip from common patterns
+    const stateZipPattern = /([A-Z]{2})\s+(\d{5})/;
+    
+    for (const part of parts) {
+      const match = part.match(stateZipPattern);
+      if (match) {
+        state = match[1];
+        zipCode = match[2];
+        break;
+      }
     }
     
-    console.log(`🏠 Could not extract proper location, using full address`);
-    return address;
+    if (parts.length >= 4) {
+      // Format: "Street, City, State ZIP, Country"
+      city = parts[parts.length - 3];
+    } else if (parts.length >= 3) {
+      // Format: "Street, City, State ZIP"
+      city = parts[parts.length - 2];
+    } else if (parts.length === 2) {
+      // Format: "City, State ZIP"
+      city = parts[0];
+    }
+    
+    // Build location query with city and state
+    let locationQuery = city;
+    if (state) {
+      locationQuery = `${city}, ${state}`;
+    }
+    if (zipCode && !city) {
+      // If we only have zip code, use that
+      locationQuery = zipCode;
+    }
+    
+    console.log(`🏠 Extracted location: "${locationQuery}" (city: ${city}, state: ${state}, zip: ${zipCode})`);
+    return locationQuery || address;
   }
 
   private calculateMarketPosition(target: BusinessSuggestion, competitors: BusinessSuggestion[]): number {
@@ -182,22 +234,54 @@ export class CompetitorAnalysisService {
     return Math.max(0, Math.min(100, Math.round(score)));
   }
 
-  private calculatePerformanceScore(target: BusinessSuggestion): number {
-    let score = 0;
+  private calculatePerformanceScore(target: BusinessSuggestion, competitors: BusinessSuggestion[]): number {
+    if (competitors.length === 0) {
+      // Fallback to simple calculation if no competitors
+      return Math.min(64, Math.round((target.rating / 5) * 100));
+    }
     
-    // Rating component (40 points)
-    score += (target.rating / 5) * 40;
+    let score = 100; // Start at 100 and subtract based on deficits
     
-    // Review volume component (30 points)
-    const reviewScore = Math.min(30, (target.reviewCount / 100) * 30);
-    score += reviewScore;
+    // Sort competitors by strength (rating * review count)
+    const rankedCompetitors = [...competitors].sort((a, b) => {
+      const scoreA = a.rating * Math.log10((a.reviewCount || 0) + 1);
+      const scoreB = b.rating * Math.log10((b.reviewCount || 0) + 1);
+      return scoreB - scoreA;
+    });
     
-    // Online presence (30 points)
-    if (target.publicInfo.website) score += 15;
-    if (target.publicInfo.phone) score += 10;
-    if (target.publicInfo.photos >= 5) score += 5;
+    const topCompetitor = rankedCompetitors[0];
+    const top3Competitors = rankedCompetitors.slice(0, 3);
     
-    return Math.round(score);
+    // 1. Gap from #1 competitor (30% weight)
+    if (topCompetitor) {
+      const topScore = topCompetitor.rating * Math.log10((topCompetitor.reviewCount || 0) + 1);
+      const targetScore = target.rating * Math.log10((target.reviewCount || 0) + 1);
+      const gap = Math.max(0, topScore - targetScore) / topScore;
+      score -= gap * 30; // Lose up to 30 points based on gap
+    }
+    
+    // 2. Review volume deficit vs top 3 average (25% weight)
+    const avgTop3Reviews = top3Competitors.reduce((sum, c) => sum + c.reviewCount, 0) / top3Competitors.length;
+    if (target.reviewCount < avgTop3Reviews) {
+      const deficit = (avgTop3Reviews - target.reviewCount) / avgTop3Reviews;
+      score -= Math.min(25, deficit * 25); // Lose up to 25 points
+    }
+    
+    // 3. Rating gap from market leader (25% weight)
+    if (topCompetitor && target.rating < topCompetitor.rating) {
+      const ratingGap = (topCompetitor.rating - target.rating) / topCompetitor.rating;
+      score -= Math.min(25, ratingGap * 25); // Lose up to 25 points
+    }
+    
+    // 4. Missing opportunities (20% weight)
+    let missingPoints = 0;
+    if (!target.publicInfo.website) missingPoints += 8;
+    if (!target.publicInfo.phone) missingPoints += 4;
+    if (target.publicInfo.photos < 10) missingPoints += 4;
+    if (target.reviewCount < 50) missingPoints += 4;
+    score -= missingPoints;
+    
+    return Math.max(0, Math.min(64, Math.round(score)));
   }
 
   private identifyStrengths(target: BusinessSuggestion, competitors: BusinessSuggestion[]): string[] {
