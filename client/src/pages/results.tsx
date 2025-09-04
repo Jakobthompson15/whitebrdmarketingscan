@@ -66,10 +66,17 @@ export function ResultsPage({ analysisId, businessId, onNewSearch, analysisData,
   
   // Fix the data mapping - use competitors field if competitorData is missing
   const competitors: BusinessSuggestion[] = analysis.competitorData || (analysis as any).competitors || [];
+  
+  // Debug logging
+  console.log('Analysis data:', analysis);
+  console.log('Competitors found:', competitors.length);
+  console.log('Competitor data:', competitors);
 
   // Calculate market share data for visualization
   const totalReviews = [business, ...competitors].reduce((sum, b) => sum + (b.reviewCount || 0), 0);
-  const businessMarketShare = totalReviews > 0 ? Math.min((business.reviewCount / totalReviews) * 100, 11) : 0;
+  // Always cap market share at 11%, even if no competitors exist
+  const businessMarketShare = competitors.length === 0 ? 11 : 
+    (totalReviews > 0 ? Math.min((business.reviewCount / totalReviews) * 100, 11) : 11);
 
   const topCompetitors = competitors
     .sort((a, b) => (b.rating * Math.log10((b.reviewCount || 0) + 1)) - (a.rating * Math.log10((a.reviewCount || 0) + 1)))
@@ -252,6 +259,12 @@ export function ResultsPage({ analysisId, businessId, onNewSearch, analysisData,
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h3 className="text-lg font-bold text-black mb-6">Market Share</h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
+                {topCompetitors.length === 0 && (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-gray-500 mb-2">No competitors found in your area</p>
+                    <p className="text-xs text-gray-400">Market share capped at 11% for display</p>
+                  </div>
+                )}
                 {topCompetitors.map((competitor, index) => {
                   const competitorShare = totalReviews > 0 ? Math.min((competitor.reviewCount / totalReviews) * 100, 11) : 0;
                   return (
